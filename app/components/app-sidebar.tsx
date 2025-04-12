@@ -17,6 +17,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
@@ -25,7 +26,7 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
 import { GalleryVerticalEnd } from "lucide-react";
-
+import { FaPlus, FaRegFolder } from "react-icons/fa6";
 
 // Menu items.
 const group1 = [
@@ -38,6 +39,11 @@ const group1 = [
     title: "Meetings",
     url: "/meetings",
     icon: PiProjectorScreen,
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: FaRegFolder,
   },
   {
     title: "Billing",
@@ -60,6 +66,11 @@ const group2 = [
   },
   {
     title: "Kaizen Board",
+    url: "/",
+    icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
+  },
+  {
+    title: "TimeSheet Manager",
     url: "/",
     icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
   }
@@ -115,6 +126,11 @@ function SideBarGroup2Component() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground font-semibold">Projects</SidebarGroupLabel>
+      <SidebarGroupAction title="Add Project">
+        <Link to="/createproject">
+          <FaPlus /> <span className="sr-only">Add Project</span>
+        </Link>
+      </SidebarGroupAction>
       <SidebarGroupContent>
         <SidebarMenu>
           {group2.map((item) => (
@@ -129,13 +145,16 @@ function SideBarGroup2Component() {
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
+      <div className="flex items-center justify-center mt-2">
+        <button className="text-sm font-medium text-muted-foreground hover:underline hover:underline-offset-2">Show more...</button>
+      </div>
     </SidebarGroup>
   )
 }
 
 function SideBarFooterComponent() {
   return (
-    <SidebarFooter className="flex flex-row items-center gap-3 mb-2 dark:hover:bg-zinc-800 ml-2 rounded-md">
+    <SidebarFooter className="flex flex-row items-center gap-3 mb-3.5 dark:hover:bg-zinc-800 ml-2 rounded-md">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex gap-2 focus:outline-none">
