@@ -7,10 +7,14 @@ export async function action({ request }: { request: Request }) {
     const body = await request.formData();
     const email = body.get("email") as string;
     const password = body.get("password") as string;
-    
     console.log(email, password)
-    return null
+    
   }
+
+export async function loader({request}: {request: Request}) {
+    console.log(request.headers)
+    return null
+}
 
 export default function LoginPage() {
     return (

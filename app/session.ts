@@ -25,6 +25,7 @@ const { getSession, commitSession, destroySession } =
     },
   });
 
+// For signup
 export async function setSession(userId: string, userName: string, userEmail: string, redirectTo = "/dashboard") {
   const session = await getSession();
   session.set("userId", userId);

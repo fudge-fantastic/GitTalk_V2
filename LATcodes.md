@@ -1,3 +1,5 @@
+### Prisma Schema
+```prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -65,3 +67,4 @@ model ProjectCommit {
   project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   commit     RepoCommit @relation(fields: [commitId], references: [id], onDelete: Cascade)
 }
+```
