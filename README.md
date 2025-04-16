@@ -8,6 +8,9 @@
 
 
 ## [Prisma ORM](https://www.prisma.io/docs/getting-started/quickstart-sqlite) - [Getting Started](https://www.prisma.io/docs/getting-started)
+
+__Important__: You need to re-run the prisma generate command after every change that's made to your Prisma schema to update the generated Prisma Client code.
+
 ```shell
 # Install and initialize Prisma
 npm install prisma --save-dev
@@ -22,6 +25,8 @@ npx prisma init --datasource-provider sqlite --output ../generated/prisma
 npx prisma generate 
 npx prisma migrate dev --name init
 ```
+
+Ensure to keep client in the Prisma schema or while generating the Prisma Client.
 
 ## [Sessions](https://remix.run/docs/en/main/utils/sessions#using-sessions)
 
