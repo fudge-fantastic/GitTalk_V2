@@ -1,7 +1,27 @@
+// dashboard layout 
+
+import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
 import { AppSidebar } from "~/components/app-sidebar";
 import NavBar from "~/components/navbar";
 import { SidebarProvider } from "~/components/ui/sidebar";
+import prisma from "~/lib/prisma";
+import { requireUserSession } from "~/session";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await requireUserSession(request); // get the session
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: {
+      username: true,
+      email: true,
+    },
+  });
+
+  if (!user) throw new Response("User not found", { status: 404 });
+  // console.log(user)
+  return json({ user });
+}
 
 export default function DashboardLayout() {
     return (

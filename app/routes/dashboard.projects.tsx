@@ -3,7 +3,7 @@ import { Outlet } from "@remix-run/react";
 
 export default function ProjectsLayout() {
   return (
-    <div className="p-6">
+    <div className="mx-1">
       <Outlet />
     </div>
   );

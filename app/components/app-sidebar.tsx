@@ -1,7 +1,8 @@
-import { Link } from "@remix-run/react"
+import { Link, useLoaderData } from "@remix-run/react"
 import { RiRobot2Line } from "react-icons/ri";
 import { PiProjectorScreen } from "react-icons/pi";
-import { FiCreditCard } from "react-icons/fi";
+// import { FiCreditCard } from "react-icons/fi";
+import { RxDashboard } from "react-icons/rx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,11 @@ import { FaPlus, FaRegFolder } from "react-icons/fa6";
 // Menu items.
 const group1 = [
   {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: RxDashboard,
+  },
+  {
     title: "Q&A",
     url: "/dashboard/askquestions",
     icon: RiRobot2Line,
@@ -45,11 +51,11 @@ const group1 = [
     url: "/dashboard/projects",
     icon: FaRegFolder,
   },
-  {
-    title: "Billing",
-    url: "/settings",
-    icon: FiCreditCard,
-  },
+  // {
+  //   title: "Billing",
+  //   url: "/settings",
+  //   icon: FiCreditCard,
+  // },
 ]
 
 const group2 = [
@@ -75,6 +81,13 @@ const group2 = [
     icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
   }
 ]
+
+type LoaderData = {
+  user: {
+    username: string
+    email: string
+  }
+}
 
 export function AppSidebar() {
   return (
@@ -153,6 +166,8 @@ function SideBarGroup2Component() {
 }
 
 function SideBarFooterComponent() {
+  const { user } = useLoaderData<LoaderData>();
+
   return (
     <SidebarFooter className="flex flex-row items-center gap-3 mb-3.5 dark:hover:bg-zinc-800 ml-2 rounded-md">
       <DropdownMenu>
@@ -162,8 +177,8 @@ function SideBarFooterComponent() {
               BS
             </div>
             <div className="flex flex-col text-left">
-              <p className="text-sm font-medium tracking-wide">Bluesalt</p>
-              <p className="text-xs leading-none text-muted-foreground tracking-wide">bluesalt@example.com</p>
+              <p className="text-sm font-medium tracking-wide">{user.username}</p>
+              <p className="text-xs leading-none text-muted-foreground tracking-wide">{user.email}</p>
             </div>
           </button>
         </DropdownMenuTrigger>
