@@ -1,4 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
+import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,10 +11,9 @@ export const meta: MetaFunction = () => {
 export default function Index() {
   return (
     <div className="flex h-screen items-center justify-center">
-
-      <h1 className="text-2xl font-bold underline">
-        Hello world!
-      </h1>
+      <Link to="/dashboard" className="text-2xl font-bold underline">
+        Head to Dashboard! 
+      </Link>
     </div>
   );
 }

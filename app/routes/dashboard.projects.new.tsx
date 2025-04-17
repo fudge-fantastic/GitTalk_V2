@@ -1,7 +1,7 @@
+// dashboard.projects.new.tsx
 import { LuCodeXml } from "react-icons/lu";
 
 export default function CreateProject() {
-
     return (
         <div className="flex items-center justify-center my-6">
             <div className="flex flex-col items-center">

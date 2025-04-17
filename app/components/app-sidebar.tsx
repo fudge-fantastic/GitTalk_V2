@@ -32,22 +32,22 @@ import { FaPlus, FaRegFolder } from "react-icons/fa6";
 const group1 = [
   {
     title: "Q&A",
-    url: "/askquestions",
+    url: "/dashboard/askquestions",
     icon: RiRobot2Line,
   },
   {
     title: "Meetings",
-    url: "/meetings",
+    url: "/dashboard/meetings",
     icon: PiProjectorScreen,
   },
   {
     title: "Projects",
-    url: "/projects",
+    url: "/dashboard/projects",
     icon: FaRegFolder,
   },
   {
     title: "Billing",
-    url: "/",
+    url: "/settings",
     icon: FiCreditCard,
   },
 ]
@@ -127,7 +127,7 @@ function SideBarGroup2Component() {
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground font-semibold">Projects</SidebarGroupLabel>
       <SidebarGroupAction title="Add Project">
-        <Link to="/createproject">
+        <Link to="/dashboard/projects/new">
           <FaPlus /> <span className="sr-only">Add Project</span>
         </Link>
       </SidebarGroupAction>

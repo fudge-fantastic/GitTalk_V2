@@ -25,8 +25,9 @@ const { getSession, commitSession, destroySession } =
     },
   });
 
-// For signup
-export async function setSession(userId: string, userName: string, userEmail: string, redirectTo = "/dashboard") {
+
+// setSession(...) sets the cookie and redirects
+export async function setSession(userId: string, userName: string, userEmail: string, redirectTo = "/projects") {
   const session = await getSession();
   session.set("userId", userId);
   session.set("userName", userName);
@@ -39,6 +40,7 @@ export async function setSession(userId: string, userName: string, userEmail: st
   });
 }
 
+// requireUserSession(...) protects routes
 export async function requireUserSession(request: Request) {
   const session = await getSession(request.headers.get("Cookie"));
   if (!session.has("userId")) {
@@ -48,6 +50,7 @@ export async function requireUserSession(request: Request) {
   return session.data as SessionData;
 }
 
+// logout(...) destroys session and redirects
 export async function logout(request: Request) {
   const session = await getSession(request.headers.get("Cookie"));
 
