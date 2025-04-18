@@ -140,7 +140,7 @@ function SideBarGroup2Component() {
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground font-semibold">Projects</SidebarGroupLabel>
       <SidebarGroupAction title="Add Project">
-        <Link to="/dashboard/projects/new">
+        <Link to="/dashboard/projects/newproject">
           <FaPlus /> <span className="sr-only">Add Project</span>
         </Link>
       </SidebarGroupAction>

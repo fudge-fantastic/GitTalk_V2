@@ -25,7 +25,7 @@ const projects = [
 
 export default function ProjectsIndex() {
   return (
-    <div className="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-3.5">
+    <div className="grid md:grid-cols-3 grid-cols-2 gap-3.5">
       {projects.map((project) => (
         <div key={project.name} className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 py-3 px-3.5 rounded-md shadow-sm shadow-zinc-400 dark:shadow-none flex flex-col justify-between">
           <h2 className="text-lg font-semibold">{project.name}</h2>

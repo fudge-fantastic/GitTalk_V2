@@ -1,5 +1,4 @@
 // dashboard layout 
-
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
 import { AppSidebar } from "~/components/app-sidebar";
@@ -24,6 +23,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function DashboardLayout() {
+  console.log("dashboard layout")
     return (
       <SidebarProvider>
         <AppSidebar />

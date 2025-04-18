@@ -31,6 +31,8 @@ Ensure to keep client in the Prisma schema or while generating the Prisma Client
 ## [Sessions](https://remix.run/docs/en/main/utils/sessions#using-sessions)
 
 ## TODOs
-
-1. High Priority: Create a dummy user or use Prima to create a temp user, test login.
-2. High Priority: Work on creating user using Sign-up form. 
+High Priority - HP, Medium Priority - MP, Low Priority - LP
+1. Landing Page - LP
+2. Registration and Logout - MP
+3. Project CRUD operations - HP
+4. Fill Dashboard, Q&A, Meetings with components - LP
