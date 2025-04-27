@@ -1,5 +1,16 @@
 // dashboard.projects.new.tsx
+import { Form } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
+
+export async function action({ request }: { request: Request }) {
+    const body = await request.formData();
+    const projectName = body.get("projectName") as string;
+    const githubUrl = body.get("githubUrl") as string;
+    const githubToken = body.get("githubToken") as string;
+    const description = body.get("description") as string;
+    console.log(projectName, githubUrl, githubToken, description);
+    return null;
+}
 
 export default function CreateProject() {
     return (
@@ -12,11 +23,12 @@ export default function CreateProject() {
                         <p className="md:text-sm text-xs text-muted-foreground font-medium">Enter your GitHub repository details</p>
                     </div>
                 </div>
-                <div className="w-full flex flex-col gap-4 md:p-0 p-2 mt-4">
+                <Form method="post" className="w-full flex flex-col gap-4 md:p-0 p-2 mt-4">
                     <label>
                         <span className="text-sm text-muted-foreground font-medium">Project Name</span>
                         <input
-                            // type="text"
+                            name="projectName"
+                            type="text"
                             placeholder="Can be any name :)"
                             required
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
@@ -25,7 +37,8 @@ export default function CreateProject() {
                     <label>
                         <span className="text-sm text-muted-foreground font-medium">Github Repository URL</span>
                         <input
-                            // type="url"
+                            name="githubUrl"
+                            type="url"
                             placeholder="https://github.com/username/repo"
                             required
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
@@ -34,7 +47,17 @@ export default function CreateProject() {
                     <label>
                         <span className="text-sm text-muted-foreground font-medium">GitHub Access Token (Optional)</span>
                         <input
-                            // type="password"
+                            name="githubToken"
+                            type="password"
+                            placeholder="GitHub Access Token"
+                            className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
+                        />
+                    </label>
+                    <label>
+                        {/* <span className="text-sm text-muted-foreground font-medium">Description</span> */}
+                        <input
+                            name="description"
+                            type="hidden"
                             placeholder="GitHub Access Token"
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
                         />
@@ -44,7 +67,7 @@ export default function CreateProject() {
                         className="p-2 md:text-base text-sm w-full rounded-md bg-primary text-primary-foreground font-semibold mt-3">
                         Create Project
                     </button>
-                </div>
+                </Form>
             </div>
         </div>
     );

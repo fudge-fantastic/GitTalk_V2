@@ -4,11 +4,13 @@ import { Outlet } from "@remix-run/react";
 import { AppSidebar } from "~/components/app-sidebar";
 import NavBar from "~/components/navbar";
 import { SidebarProvider } from "~/components/ui/sidebar";
-import prisma from "~/lib/prisma";
-import { requireUserSession } from "~/session";
+import { prisma } from "~/db.server";
+import { getProjectsForUser } from "~/models/project.server";
+import { requireUserSession } from "~/session.server";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await requireUserSession(request); // get the session
+  const projects = await getProjectsForUser(session.userId); // get the projects
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     select: {
@@ -19,21 +21,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (!user) throw new Response("User not found", { status: 404 });
   // console.log(user)
-  return json({ user });
+  return json({ user, projects });
 }
 
 export default function DashboardLayout() {
   console.log("dashboard layout")
-    return (
-      <SidebarProvider>
-        <AppSidebar />
-        <div className="flex flex-col w-full rounded-xl dark:bg-zinc-950 bg-white m-3 shadow-md shadow-zinc-400 dark:shadow-none">
-          <NavBar />
-          <div className="m-3">
-            <Outlet />
-          </div>
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <div className="flex flex-col w-full rounded-xl dark:bg-zinc-950 bg-white m-3 shadow-md shadow-zinc-400 dark:shadow-none">
+        <NavBar />
+        <div className="m-3">
+          <Outlet />
         </div>
-      </SidebarProvider>
-    );
-  }
-  
+      </div>
+    </SidebarProvider>
+  );
+}

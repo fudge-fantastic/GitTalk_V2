@@ -33,6 +33,14 @@ Ensure to keep client in the Prisma schema or while generating the Prisma Client
 ## TODOs
 High Priority - HP, Medium Priority - MP, Low Priority - LP
 1. Landing Page - LP
-2. Registration and Logout - MP
-3. Project CRUD operations - HP
+2. Registration and Logout (1/2 done). Work on Error handling - MP
+3. Project CRUD operations (file created. Testing functions). Work on form submission and display projects - MP
 4. Fill Dashboard, Q&A, Meetings with components - LP
+
+## Performance Tips
+1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)
+2. Since our RepoCommit model has optional summary, we can later build a queue system (like background jobs) to summarize commits when pendingSummary is true (eg - a cron job or background worker)
+3. Only Query What You Need ("select" and "include"). Smaller queries = faster database = less memory = faster page loads.
+
+## References
+1. [Input Types](https://www.w3schools.com/html/html_form_input_types.asp)

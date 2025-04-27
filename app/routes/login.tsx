@@ -1,30 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Form, json, Link, redirect, useActionData } from "@remix-run/react";
+import bcrypt from "bcryptjs";
 import { GalleryVerticalEnd } from "lucide-react";
 import { FaGithubAlt } from "react-icons/fa6";
 import ModeToggle from "~/components/darkModeToggle";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import prisma from "~/lib/prisma";
 import { cn } from "~/lib/utils";
-import { getSession, setSession } from "~/session";
+import { getUserByEmail } from "~/models/user.server";
+import { getSession, setSession } from "~/session.server";
 
 export async function action({ request }: { request: Request }) {
   const body = await request.formData();
   const email = body.get("email") as string;
   const password = body.get("password") as string;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  // Calling the getUserByEmail function from the user.server (Prisma!)
+  const user = await getUserByEmail(email);
 
-  console.log(user)
+  // console.log(user)
 
   if (!user) {
     return json({ error: "Email not found, please sign up" }, { status: 401 });
   }
 
-  const isValidPassword = password === user.password;
+  const isValidPassword = await bcrypt.compare(password, user.password);
   if (!isValidPassword) {
     return json({ error: "Incorrect Password" }, { status: 401 });
   }
@@ -125,7 +125,7 @@ export default function LoginPage(props: any) {
           {/* Signup Link */}
           <div className="text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link to="/signup" className="underline underline-offset-2">
+            <Link to="/register" className="underline underline-offset-2">
               Sign up
             </Link>
           </div>

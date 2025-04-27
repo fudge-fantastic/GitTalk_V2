@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from "@remix-run/react"
+import { Form, Link, useLoaderData } from "@remix-run/react"
 import { RiRobot2Line } from "react-icons/ri";
 import { PiProjectorScreen } from "react-icons/pi";
 // import { FiCreditCard } from "react-icons/fi";
@@ -28,6 +28,8 @@ import {
 } from "~/components/ui/sidebar"
 import { GalleryVerticalEnd } from "lucide-react";
 import { FaPlus, FaRegFolder } from "react-icons/fa6";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import { useState } from "react";
 
 // Menu items.
 const group1 = [
@@ -50,12 +52,7 @@ const group1 = [
     title: "Projects",
     url: "/dashboard/projects",
     icon: FaRegFolder,
-  },
-  // {
-  //   title: "Billing",
-  //   url: "/settings",
-  //   icon: FiCreditCard,
-  // },
+  }
 ]
 
 const group2 = [
@@ -167,6 +164,7 @@ function SideBarGroup2Component() {
 
 function SideBarFooterComponent() {
   const { user } = useLoaderData<LoaderData>();
+  const [open, setOpen] = useState(false)
 
   return (
     <SidebarFooter className="flex flex-row items-center gap-3 mb-3.5 dark:hover:bg-zinc-800 ml-2 rounded-md">
@@ -197,11 +195,27 @@ function SideBarFooterComponent() {
           <DropdownMenuItem>GitHub</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            Log out
+          <DropdownMenuItem onClick={() => setOpen(true)}>
+            Logout
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              This will log you out of your account.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-3 mt-1">
+            <button className="px-2 py-0.5 text-xs shadow-sm dark:shadow-none hover:shadow-md shadow-zinc-400 hover:shadow-zinc-400 dark:bg-zinc-800 border dark:hover:border-zinc-700 rounded-md font-semibold duration-150" onClick={() => setOpen(false)}>Cancel</button>
+            <Form method="post" action="/logout">
+              <button type="submit" className="px-3 py-2 text-xs font-semibold bg-red-600 shadow-sm hover:shadow-md hover:shadow-red-500 shadow-red-500 text-white rounded-md duration-150">Logout</button>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarFooter>
   )
 }
