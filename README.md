@@ -36,6 +36,8 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 2. Registration and Logout (1/2 done). Work on Error handling - MP
 3. Project CRUD operations (file created. Testing functions). Work on form submission and display projects - MP
 4. Fill Dashboard, Q&A, Meetings with components - LP
+5. Lazy Loading and Skeletons, Optimistic UI - MP
+6. Work on Data Fetching, where and why to load data in certain route - MP
 
 ## Performance Tips
 1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)

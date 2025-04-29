@@ -1,6 +1,8 @@
 // dashboard.projects.new.tsx
-import { Form } from "@remix-run/react";
+import { Form, json, redirect } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
+import { createSingleProject } from "~/models/project.server";
+import { getSession } from "~/session.server";
 
 export async function action({ request }: { request: Request }) {
     const body = await request.formData();
@@ -8,8 +10,24 @@ export async function action({ request }: { request: Request }) {
     const githubUrl = body.get("githubUrl") as string;
     const githubToken = body.get("githubToken") as string;
     const description = body.get("description") as string;
-    console.log(projectName, githubUrl, githubToken, description);
-    return null;
+    console.log("Form Data:", projectName, githubUrl, githubToken, description);
+
+    const session = await getSession(request.headers.get("Cookie"));
+    const userId = session.get("userId");
+    
+    if(!userId) {
+        return json({ error: "Unauthorized User" }, { status: 401 });
+    }
+    
+    try {
+        const project = await createSingleProject({userId, projectName, githubUrl, githubToken, description});
+        console.log("Project created", { projectName, githubUrl, githubToken, description });
+        // return redirect(`/dashboard/projects`);
+        return redirect(`/dashboard/projects/${project.id}}`);
+    } catch (error) {
+        console.error("Failed to create project", error);
+        return json({ error: "Failed to create project" }, { status: 500 });
+    }
 }
 
 export default function CreateProject() {

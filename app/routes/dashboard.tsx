@@ -20,12 +20,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
   });
 
   if (!user) throw new Response("User not found", { status: 404 });
-  // console.log(user)
+  console.log(user, projects);
   return json({ user, projects });
 }
 
 export default function DashboardLayout() {
-  console.log("dashboard layout")
   return (
     <SidebarProvider>
       <AppSidebar />
