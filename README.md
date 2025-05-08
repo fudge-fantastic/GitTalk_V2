@@ -36,7 +36,7 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 2. Registration and Logout (1/2 done). Work on Error handling - MP
 3. Project CRUD operations (file created. Testing functions). Work on form submission and display projects - MP
 4. Fill Dashboard, Q&A, Meetings with components - LP
-5. Lazy Loading and Skeletons, Optimistic UI - MP
+5. Lazy Loading and Skeletons, Optimistic UI - HP
 6. Work on Data Fetching, where and why to load data in certain route - MP
 
 ## Performance Tips
@@ -46,3 +46,9 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 
 ## References
 1. [Input Types](https://www.w3schools.com/html/html_form_input_types.asp)
+
+## Application Layout
+- __dashboard.tsx__: Loading user and projects using loader function. In loader, checking if the user is authenticated. If not, redirect to login page. If yes, load user and projects. This is where our dashboard layout is defined (Sidebar) and using Outlet to pass the data to child routes 
+- __dashboard.projects.tsx__: Fetching data from the parent route (dashboard.tsx) using outletContext. This is where our projects layout is defined
+- __dashboard.projects._index.tsx__: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a list of projects. 
+- __dashboard.projects.$id.tsx__: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a single project.

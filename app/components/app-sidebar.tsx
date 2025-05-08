@@ -55,46 +55,27 @@ const group1 = [
   }
 ]
 
-const group2 = [
-  {
-    title: "WordSmith",
-    url: "/",
-    icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
-  },
-  {
-    title: "SprintSync",
-    url: "/",
-    icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
-
-  },
-  {
-    title: "Kaizen Board",
-    url: "/",
-    icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
-  },
-  {
-    title: "TimeSheet Manager",
-    url: "/",
-    icon: <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center">P</div>,
-  }
-]
-
 type LoaderData = {
   user: {
-    username: string
-    email: string
-  }
-}
+    username: string;
+    email: string;
+  };
+  projects: {
+    id: string;
+    projectName: string;
+  }[];
+};
 
 export function AppSidebar() {
+  const { user, projects } = useLoaderData<LoaderData>();
   return (
     <Sidebar className="border-none">
       <SideBarHeaderComponent />
       <SidebarContent>
         <SideBarGroup1Component />
-        <SideBarGroup2Component />
+        <SideBarGroup2Component projects = {projects} />
       </SidebarContent>
-      <SideBarFooterComponent />
+      <SideBarFooterComponent user = {user} />
     </Sidebar>
   )
 }
@@ -132,7 +113,7 @@ function SideBarGroup1Component() {
   )
 }
 
-function SideBarGroup2Component() {
+function SideBarGroup2Component({ projects }: { projects: { id: string; projectName: string }[] }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground font-semibold">Projects</SidebarGroupLabel>
@@ -143,12 +124,14 @@ function SideBarGroup2Component() {
       </SidebarGroupAction>
       <SidebarGroupContent>
         <SidebarMenu>
-          {group2.map((item) => (
-            <SidebarMenuItem key={item.title}>
+          {projects.map((item) => (
+            <SidebarMenuItem key={item.projectName}>
               <SidebarMenuButton asChild>
-                <Link to={item.url} className="flex items-center gap-2">
-                  {item.icon}
-                  <span className="font-medium">{item.title}</span>
+                <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center text-xs">
+                    {item.projectName[0].toUpperCase()}
+                  </div>
+                  <span className="font-medium">{item.projectName}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -162,8 +145,7 @@ function SideBarGroup2Component() {
   )
 }
 
-function SideBarFooterComponent() {
-  const { user } = useLoaderData<LoaderData>();
+function SideBarFooterComponent({user}: {user: {username: string; email: string}}) {
   const [open, setOpen] = useState(false)
 
   return (

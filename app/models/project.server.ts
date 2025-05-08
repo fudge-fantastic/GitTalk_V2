@@ -39,13 +39,6 @@ export async function getProjectsForUser(userId: string) {
   });
 }
 
-// Get view of a single project
-export async function getProjectById(id: string) {
-  return prisma.project.findUnique({
-    where: { id },
-  });
-}
-
 // Update a project
 export async function updateProject(id: string, updates: {
   projectName?: string;
