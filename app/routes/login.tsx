@@ -40,7 +40,7 @@ export async function loader({ request }: { request: Request }) {
   return null;
 }
 
-type ActionResponse = {
+export type ActionResponse = {
   error?: string;
 };
 

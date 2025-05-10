@@ -52,3 +52,7 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 - __dashboard.projects.tsx__: Fetching data from the parent route (dashboard.tsx) using outletContext. This is where our projects layout is defined
 - __dashboard.projects._index.tsx__: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a list of projects. 
 - __dashboard.projects.$id.tsx__: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a single project.
+
+
+## Issues
+1. When a project is created, the user is redirected to the single project page—but commit summaries are not yet in the DB, so it appears empty.

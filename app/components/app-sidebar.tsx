@@ -124,7 +124,7 @@ function SideBarGroup2Component({ projects }: { projects: { id: string; projectN
       </SidebarGroupAction>
       <SidebarGroupContent>
         <SidebarMenu>
-          {projects.map((item) => (
+          {projects.filter((r, i)=>i<6).map((item) => (
             <SidebarMenuItem key={item.projectName}>
               <SidebarMenuButton asChild>
                 <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
