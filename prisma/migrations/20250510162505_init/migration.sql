@@ -27,26 +27,14 @@ CREATE TABLE "RepoCommit" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "repoUrl" TEXT NOT NULL,
     "commitHash" TEXT NOT NULL,
-    "message" TEXT NOT NULL,
+    "commitMessage" TEXT NOT NULL,
     "authorName" TEXT NOT NULL,
     "authorAvatarUrl" TEXT NOT NULL,
     "committedAt" DATETIME NOT NULL,
     "url" TEXT NOT NULL,
-    "summary" TEXT,
-    "pendingSummary" BOOLEAN NOT NULL DEFAULT true
-);
-
--- CreateTable
-CREATE TABLE "ProjectCommit" (
-    "id" TEXT NOT NULL PRIMARY KEY,
     "projectId" TEXT NOT NULL,
-    "commitId" TEXT NOT NULL,
-    CONSTRAINT "ProjectCommit_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "ProjectCommit_commitId_fkey" FOREIGN KEY ("commitId") REFERENCES "RepoCommit" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "RepoCommit_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "RepoCommit_repoUrl_commitHash_key" ON "RepoCommit"("repoUrl", "commitHash");

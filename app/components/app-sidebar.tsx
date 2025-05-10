@@ -28,8 +28,7 @@ import {
 } from "~/components/ui/sidebar"
 import { GalleryVerticalEnd } from "lucide-react";
 import { FaPlus, FaRegFolder } from "react-icons/fa6";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~/components/ui/dialog";
-import { useState } from "react";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 
 // Menu items.
 const group1 = [
@@ -73,9 +72,9 @@ export function AppSidebar() {
       <SideBarHeaderComponent />
       <SidebarContent>
         <SideBarGroup1Component />
-        <SideBarGroup2Component projects = {projects} />
+        <SideBarGroup2Component projects={projects} />
       </SidebarContent>
-      <SideBarFooterComponent user = {user} />
+      <SideBarFooterComponent user={user} />
     </Sidebar>
   )
 }
@@ -124,7 +123,7 @@ function SideBarGroup2Component({ projects }: { projects: { id: string; projectN
       </SidebarGroupAction>
       <SidebarGroupContent>
         <SidebarMenu>
-          {projects.filter((r, i)=>i<6).map((item) => (
+          {projects.filter((r, i) => i < 5).map((item) => (
             <SidebarMenuItem key={item.projectName}>
               <SidebarMenuButton asChild>
                 <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
@@ -145,44 +144,56 @@ function SideBarGroup2Component({ projects }: { projects: { id: string; projectN
   )
 }
 
-function SideBarFooterComponent({user}: {user: {username: string; email: string}}) {
-  const [open, setOpen] = useState(false)
+function SideBarFooterComponent({ user }: { user: { username: string; email: string } }) {
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) {
+      return parts[0][0]?.toUpperCase() || "";
+    } else {
+      return (parts[0][0] + parts[1][0])?.toUpperCase();
+    }
+  };
+
+  const initials = getInitials(user.username);
 
   return (
     <SidebarFooter className="flex flex-row items-center gap-3 mb-3.5 dark:hover:bg-zinc-800 ml-2 rounded-md">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="flex gap-2 focus:outline-none">
-            <div className="h-9 w-9 rounded-full bg-zinc-950 text-white flex items-center justify-center font-medium text-sm">
-              BS
-            </div>
-            <div className="flex flex-col text-left">
-              <p className="text-sm font-medium tracking-wide">{user.username}</p>
-              <p className="text-xs leading-none text-muted-foreground tracking-wide">{user.email}</p>
-            </div>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 m-1.5">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Settings
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>GitHub</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setOpen(true)}>
-            Logout
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex gap-2 focus:outline-none">
+              <div className="h-9 w-9 rounded-full bg-zinc-950 text-white flex items-center justify-center font-medium text-sm">
+                {initials}
+              </div>
+              <div className="flex flex-col text-left">
+                <p className="text-sm font-medium tracking-wide">{user.username}</p>
+                <p className="text-xs leading-none text-muted-foreground tracking-wide">{user.email}</p>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56 m-1.5">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem>
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                Settings
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>GitHub</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DialogTrigger className="w-full">
+              <DropdownMenuItem>
+                Logout
+              </DropdownMenuItem>
+            </DialogTrigger>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
@@ -191,7 +202,11 @@ function SideBarFooterComponent({user}: {user: {username: string; email: string}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-3 mt-1">
-            <button className="px-2 py-0.5 text-xs shadow-sm dark:shadow-none hover:shadow-md shadow-zinc-400 hover:shadow-zinc-400 dark:bg-zinc-800 border dark:hover:border-zinc-700 rounded-md font-semibold duration-150" onClick={() => setOpen(false)}>Cancel</button>
+            <DialogClose asChild>
+              <button className="px-2 py-0.5 text-xs shadow-sm dark:shadow-none hover:shadow-md shadow-zinc-400 hover:shadow-zinc-400 dark:bg-zinc-800 border dark:hover:border-zinc-700 rounded-md font-semibold duration-150">
+                Cancel
+              </button>
+            </DialogClose>
             <Form method="post" action="/logout">
               <button type="submit" className="px-3 py-2 text-xs font-semibold bg-red-600 shadow-sm hover:shadow-md hover:shadow-red-500 shadow-red-500 text-white rounded-md duration-150">Logout</button>
             </Form>

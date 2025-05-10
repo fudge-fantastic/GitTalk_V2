@@ -23,7 +23,7 @@ export async function action({ request }: { request: Request }) {
         const project = await createSingleProject({userId, projectName, githubUrl, githubToken, description});
         console.log("Project created", { projectName, githubUrl, githubToken, description });
         // return redirect(`/dashboard/projects`);
-        return redirect(`/dashboard/projects/${project.id}}`);
+        return redirect(`/dashboard/projects/${project.id}`);
     } catch (error) {
         console.error("Failed to create project", error);
         return json({ error: "Failed to create project" }, { status: 500 });
@@ -32,7 +32,7 @@ export async function action({ request }: { request: Request }) {
 
 export default function CreateProject() {
     return (
-        <div className="flex items-center justify-center my-6">
+        <div className="flex items-center justify-center my-12">
             <div className="flex flex-col items-center">
                 <div className="flex flex-row items-center gap-3">
                     <LuCodeXml className="md:h-16 md:w-16 w-12 h-12 text-muted-foreground" />
