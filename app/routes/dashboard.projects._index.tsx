@@ -46,7 +46,7 @@ function ProjectCard({ project }: { project: ProjectData }) {
       <div className="block hover:shadow-md transition-shadow outline-none">
         <div className="bg-zinc-100 dark:bg-zinc-900 dark:border dark:hover:border-zinc-700 dark:text-white text-zinc-950 py-3 px-3.5 rounded-md shadow-sm shadow-zinc-400 dark:shadow-none flex flex-col justify-between h-full transition">
           <div className="flex items-center justify-between">
-            <div className=" hover:underline text-lg font-semibold">{project.projectName}</div>
+            <div className="text-lg font-semibold">{project.projectName}</div>
             <DropdownMenu>
               <DropdownMenuTrigger className="p-1.5 rounded-md outline-none dark:hover:bg-zinc-700 transition">
                 <BsThreeDotsVertical className="w-4.5 h-4.5" />

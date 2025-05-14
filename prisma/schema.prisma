@@ -8,7 +8,9 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  // Fix this issue, creds are not being imported correctly 
+  // url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User {

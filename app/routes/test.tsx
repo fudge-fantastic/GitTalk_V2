@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function isValidGitHubRepoUrl(url: string): boolean {
+export function isValidGitHubRepoUrl(url: string): boolean {
   const regex = /^https:\/\/github\.com\/([\w-]+)\/([\w.-_]+)(\/)?$/i;
   return regex.test(url.trim());
 }

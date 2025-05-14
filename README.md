@@ -39,6 +39,9 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 5. Lazy Loading and Skeletons, Optimistic UI - HP
 6. Work on Data Fetching, where and why to load data in certain route - MP
 
+## Pendings
+- Add a validator for GitHub repo URL - MP
+
 ## Performance Tips
 1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)
 2. Since our RepoCommit model has optional summary, we can later build a queue system (like background jobs) to summarize commits when pendingSummary is true (eg - a cron job or background worker)
@@ -55,4 +58,15 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 
 
 ## Issues
-1. When a project is created, the user is redirected to the single project page—but commit summaries are not yet in the DB, so it appears empty.
+#### Credentials are not being loaded from the .env file.
+```shell
+$ npx prisma migrate dev --name init2
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": SQLite database
+
+Error: P1013: The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+```
+Fix for this: Ensure .env credentials are imported correctly in the working file. If not, add the private token in the working file temporarily.
+
+- When a project is created, the user is redirected to the single project page—but commit summaries are not yet in the DB, so it appears empty.

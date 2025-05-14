@@ -1,8 +1,13 @@
 // dashboard.projects.new.tsx
-import { Form, json, redirect } from "@remix-run/react";
+import { Form, json, redirect, useActionData } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
+
+export function isValidGitHubRepoUrl(url: string): boolean {
+  const regex = /^https:\/\/github\.com\/([\w-]+)\/([\w.-_]+)(\/)?$/i;
+  return regex.test(url.trim());
+}
 
 export async function action({ request }: { request: Request }) {
     const body = await request.formData();
@@ -10,7 +15,11 @@ export async function action({ request }: { request: Request }) {
     const githubUrl = body.get("githubUrl") as string;
     const githubToken = body.get("githubToken") as string;
     const description = body.get("description") as string;
-    console.log("Form Data:", projectName, githubUrl, githubToken, description);
+
+    const isValidGitHubUrl = isValidGitHubRepoUrl(githubUrl);
+    if (!isValidGitHubUrl) {
+        return json({ error: "Invalid GitHub repository URL" }, { status: 400 });
+    }
 
     const session = await getSession(request.headers.get("Cookie"));
     const userId = session.get("userId");
@@ -22,7 +31,6 @@ export async function action({ request }: { request: Request }) {
     try {
         const project = await createSingleProject({userId, projectName, githubUrl, githubToken, description});
         console.log("Project created", { projectName, githubUrl, githubToken, description });
-        // return redirect(`/dashboard/projects`);
         return redirect(`/dashboard/projects/${project.id}`);
     } catch (error) {
         console.error("Failed to create project", error);
@@ -31,6 +39,7 @@ export async function action({ request }: { request: Request }) {
 }
 
 export default function CreateProject() {
+    const actionData = useActionData<typeof action>();
     return (
         <div className="flex items-center justify-center my-12">
             <div className="flex flex-col items-center">
@@ -42,6 +51,9 @@ export default function CreateProject() {
                     </div>
                 </div>
                 <Form method="post" className="w-full flex flex-col gap-4 md:p-0 p-2 mt-4">
+                    {actionData?.error && (
+                        <p className="text-red-500 text-center">{actionData.error}</p>
+                    )}
                     <label>
                         <span className="text-sm text-muted-foreground font-medium">Project Name</span>
                         <input
