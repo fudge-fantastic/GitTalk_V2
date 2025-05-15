@@ -26,6 +26,13 @@ npx prisma generate
 npx prisma migrate dev --name init
 ```
 
+```shell
+# If making changes to the Prisma schema
+npx prisma db push
+# or 
+npx prisma migrate dev --name remove_repo_url 
+```
+
 Ensure to keep client in the Prisma schema or while generating the Prisma Client.
 
 ## [Sessions](https://remix.run/docs/en/main/utils/sessions#using-sessions)

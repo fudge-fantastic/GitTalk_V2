@@ -44,13 +44,12 @@ model Project {
 
 model RepoCommit {
   id              String   @id @default(uuid())
-  repoUrl         String
+  
   commitHash      String
   commitMessage   String
   authorName      String
   authorAvatarUrl String
   committedAt     DateTime
-  url             String
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
