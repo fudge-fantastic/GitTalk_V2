@@ -8,6 +8,7 @@ import {
 import type { LinksFunction } from "@remix-run/node";
 import { ThemeProvider } from "~/components/theme-provider"
 import "./tailwind.css";
+import { ScrollArea } from "./components/ui/scroll-area";
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -33,10 +34,13 @@ export function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
         <Links />
       </head>
       <body>
+
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
-          <ScrollRestoration />
-          <Scripts />
+          <ScrollArea className="h-screen">
+            {children}
+            <ScrollRestoration />
+            <Scripts />
+          </ScrollArea>
         </ThemeProvider>
       </body>
     </html>

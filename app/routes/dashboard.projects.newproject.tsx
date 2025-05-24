@@ -5,7 +5,7 @@ import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
 
 export function isValidGitHubRepoUrl(url: string): boolean {
-  const regex = /^https:\/\/github\.com\/([\w-]+)\/([\w.-_]+)(\/)?$/i;
+  const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
   return regex.test(url.trim());
 }
 

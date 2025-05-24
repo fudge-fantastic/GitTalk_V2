@@ -30,6 +30,7 @@ export default function DashboardLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
+      {/* Whole Canvas Container */}
       <div className="flex flex-col w-full rounded-xl dark:bg-zinc-950 bg-white m-3 shadow-md shadow-zinc-400 dark:shadow-none">
         <NavBar />
         <div className="m-3">

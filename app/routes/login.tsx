@@ -18,7 +18,14 @@ export async function action({ request }: { request: Request }) {
   // Calling the getUserByEmail function from the user.server (Prisma!)
   const user = await getUserByEmail(email);
 
-  // console.log(user)
+  // Check if field is empty
+  if (!email) {
+    return json({ error: "Email is required" }, { status: 400 });
+  }
+
+  if (!password) {
+    return json({ error: "Password is required" }, { status: 400 });
+  }
 
   if (!user) {
     return json({ error: "Email not found, please sign up" }, { status: 401 });
@@ -72,37 +79,33 @@ export default function LoginPage(props: any) {
             <div className="grid gap-1">
               <label htmlFor="email" className="text-sm flex flex-row gap-2 items-center">
                 Email
-                
+
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="johndoe@example.com"
-                required
               />
             </div>
 
             {/* Password Input */}
             <div className="grid gap-1">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm">Password
-                  
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs underline-offset-3 hover:underline"
-                >
-                  Forgot your password?
-                </Link>
+              <div>
+                <label htmlFor="password" className="text-sm">Password</label>
               </div>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 placeholder="Enter your password"
-                required
               />
+              <Link
+                to="/forgot-password"
+                className="text-xs underline-offset-3 hover:underline text-right"
+              >
+                Forgot your password?
+              </Link>
             </div>
 
             {/* Submit Button */}
