@@ -45,10 +45,9 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 4. Fill Dashboard, Q&A, Meetings with components - LP
 5. Lazy Loading and Skeletons, Optimistic UI - HP
 6. Work on Data Fetching, where and why to load data in certain route - MP
-7. Able to load commits via Octokit, but they're not being saved in DB. In order to update the DB, we can create a update button that will trigger the octokit to fetch the recent commits of the repo and update them in the DB. 
-
-## Pendings
-- Add a validator for GitHub repo URL - MP
+7. Able to load commits via Octokit, but they're not being saved in DB. In order to update the DB, we can create a update button that will trigger the octokit to fetch the recent commits of the repo and update them in the DB.
+8. Add a validator for GitHub repo URL - Done
+9. WIP 
 
 ## Performance Tips
 1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)
@@ -78,3 +77,15 @@ Error: P1013: The provided database string is invalid. The scheme is not recogni
 Fix for this: Ensure .env credentials are imported correctly in the working file. If not, add the private token in the working file temporarily.
 
 - When a project is created, the user is redirected to the single project page—but commit summaries are not yet in the DB, so it appears empty.
+
+```shell
+$ npx prisma generate
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+Error: 
+EPERM: operation not permitted, rename 'D:\CODING\Remix\GitTalk_V2\generated\prisma\query_engine-windows.dll.node.tmp20224' -> 'D:\CODING\Remix\GitTalk_V2\generated\prisma\query_engine-windows.dll.node'
+```
+Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
+
+## [LangChainJS](https://js.langchain.com/docs/introduction/) 
+- __githubLoader.server.ts__: Loading a Github repo into LangChainJS. Spits out an array of documents. Summarizing documents: summaries = getSummary(document.pageContent). Then, get embeddings of the summaries, store em in the Vector DB 

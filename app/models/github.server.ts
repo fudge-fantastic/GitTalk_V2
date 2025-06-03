@@ -1,20 +1,9 @@
 import { Octokit } from "octokit";
 import dotenv from "dotenv";
 import { prisma } from "~/db.server";
+dotenv.config();
 
-dotenv.config(); // ----> This shit aint working
-const githubToken = process.env.GITHUB_TOKEN; // ----> This shit aint working
-
-console.log("githubToken:", typeof(githubToken));
-if (!githubToken) {
-  throw new Error(
-    "GitHub token not found. Please set GITHUB_TOKEN environment variable."
-  );
-} else {
-  console.log("All good! Github token found.");
-}
-
-export const octokit = new Octokit({ auth: githubToken });
+export const octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_TOKEN });
 if (!octokit) {
   throw new Error("Error creating Octokit instance.");
 } else {
@@ -60,6 +49,7 @@ export async function getCommitHashes(githubUrl: string): Promise<commitResponse
   });
 
   return slicedSortedCommits;
+  // Returning Commits only, not being saved in the DB
 }
 
 // Fetching GitHub URL from the Database
@@ -150,6 +140,8 @@ export async function pollCommits(projectId: string) {
 // }
 
 // await pollCommits("31952ad6-1ddf-4371-a7d9-e4a79bd3f5d8").then(console.log);
+
+
 // Testing
 // (async () => {
 //   try {

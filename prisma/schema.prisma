@@ -1,55 +1,62 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "sqlite"
-  // Fix this issue, creds are not being imported correctly 
+  provider = "postgresql"
   // url      = env("DATABASE_URL")
-  url      = "file:./dev.db"
+  // directUrl = env("DIRECT_URL")
+  extensions = [vector]
 }
 
 model User {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  username String
-  email    String @unique
-  password String
-  credits  Int    @default(100)
-
-  projects Project[]
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  username  String    @db.VarChar(30)
+  email     String    @unique @db.VarChar(100)
+  password  String    @db.VarChar(100)
+  credits   Int       @default(100)
+  projects  Project[]
 }
 
 model Project {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  projectName String
-  githubUrl   String
-  githubToken String?
-  description String?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  projectName    String       @db.VarChar(100)
+  githubUrl      String       @db.VarChar(2048)
+  githubToken    String?      @db.VarChar(255)
+  description    String?
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectCommits RepoCommit[]
+
+  SourceCodeEmbedding SourceCodeEmbedding[]
 }
 
 model RepoCommit {
   id              String   @id @default(uuid())
-  
   commitHash      String
   commitMessage   String
   authorName      String
   authorAvatarUrl String
   committedAt     DateTime
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([commitHash])
+}
+
+model SourceCodeEmbedding {
+  id               String                      @id @default(uuid())
+  summaryEmbedding Unsupported("vector(768)")?
+  sourceCode       String
+  fileName         String
+  summary          String
 
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

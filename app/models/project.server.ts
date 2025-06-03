@@ -26,6 +26,8 @@ export async function createSingleProject({
 
 // Get view of all projects
 export async function getProjectsForUser(userId: string) {
+  if (!userId) return [];
+  if (!prisma) return [];
   return prisma.project.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },

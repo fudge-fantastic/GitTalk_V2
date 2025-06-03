@@ -31,7 +31,7 @@ export default function ProjectDetailsRoute() {
     const { id } = useParams();
     const { projects } = useOutletContext<{ projects: SingleProjectData[] }>();
     const { commits } = useLoaderData<{ commits: commitResponse[] }>();
-    console.log(commits);
+    // console.log(commits);
 
     const project = projects.find((p) => p.id === id);
 
@@ -54,7 +54,7 @@ export default function ProjectDetailsRoute() {
                     </div>
                 </div>
                 <div className="py-3 pl-4 dark:bg-zinc-900 bg-zinc-100 rounded-md shadow-sm shadow-zinc-400 dark:shadow-none w-[40%]">
-                    <h1 className="text-lg font-semibold mb-1">Project Description</h1>
+                    <h1 className="text-lg font-semibold mb-1">{project.projectName}</h1>
                     <ScrollArea className="font-medium text-muted-foreground tracking-wider text-sm h-44 overflow-auto pr-4 text-justify">
                         Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ex rerum repellat labore. Ipsa blanditiis adipisci, autem porro, at dolorum saepe animi iusto ratione molestiae et tempore? Ullam, animi consectetur! Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae similique, architecto nobis eaque officia iusto eos possimus deserunt
                     </ScrollArea>
@@ -74,12 +74,16 @@ export default function ProjectDetailsRoute() {
                         <p className="text-muted-foreground">No commits found.</p>
                     ) : (
                         commits.map((commit) => (
-                            <div key={commit.commitHash}>
-                                <div className="flex items-center gap-4">
+                            <div key={commit.commitHash} className="flex items-center">
+                                <div className="flex items-start gap-4">
                                     {/* Avatar */}
-                                    <div>
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 mt-1">
                                         {commit.authorAvatarUrl && (
-                                            <img src={commit.authorAvatarUrl} alt={commit.authorName} className="w-10 h-10 rounded-full" />
+                                            <img
+                                                src={commit.authorAvatarUrl}
+                                                alt={commit.authorName}
+                                                className="w-10 h-10 rounded-full object-cover"
+                                            />
                                         )}
                                     </div>
                                     {/* Commit details */}
@@ -94,6 +98,9 @@ export default function ProjectDetailsRoute() {
                                         <p className="font-medium text-base">{commit.commitMessage}</p>
                                         {/* <p className="text-muted-foreground text-sm">{commit.commitHash}</p> */}
                                     </div>
+                                </div>
+                                <div>
+                                    <button className="text-sm font-medium px-2.5 py-1.5 dark:bg-white dark:text-black dark:hover:bg-zinc-200 bg-zinc-950 text-white hover:bg-zinc-900 rounded-md">Summarize Commit</button>
                                 </div>
                             </div>
                         ))
