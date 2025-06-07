@@ -1,4 +1,5 @@
 // utils/prisma.ts
+
 import { PrismaClient } from "generated/prisma/client";
 
 let prisma: PrismaClient;

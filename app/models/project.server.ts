@@ -5,39 +5,27 @@ export async function createSingleProject({
   projectName,
   githubUrl,
   description,
-  githubToken,
 }: {
   userId: string;
   projectName: string;
   githubUrl: string;
   description?: string;
-  githubToken?: string;
 }) {
   return prisma.project.create({
     data: {
       userId,
       projectName,
-      githubUrl, // Will be optional
+      githubUrl,
       description, // Will be optional
-      githubToken, // Will be optional
     },
   });
 }
 
 // Get view of all projects
 export async function getProjectsForUser(userId: string) {
-  if (!userId) return [];
-  if (!prisma) return [];
   return prisma.project.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
-    // select: {
-    //   id: true,
-    //   projectName: true,
-    //   githubUrl: true,
-    //   createdAt: true,
-    //   updatedAt: true,
-    // },
   });
 }
 
