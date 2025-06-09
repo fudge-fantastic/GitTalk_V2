@@ -6,6 +6,7 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { CommitResponse, pollCommits } from "~/models/github.server";
 import { FiExternalLink } from "react-icons/fi";
+// import { IoMdRefresh } from "react-icons/io";
 
 export interface SingleProjectData {
     id: string;
@@ -61,13 +62,19 @@ export default function ProjectDetailsRoute() {
                 </div>
             </div>
             <div className="mt-3">
-                <div className="flex gap-2 items-center">
-                    <FaCodeCommit className="w-7 h-7" />
-                    <h1 className="font-semibold text-xl">Recent Commits</h1>
-                    <Link to={project.githubUrl} target="_blank" className="font-medium lowercase hover:underline flex items-center gap-1" rel="noreferrer">
-                        <p>Visit Repository</p>
-                        <FiExternalLink className="w-4 h-4" />
-                    </Link>
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <FaCodeCommit className="w-7 h-7" />
+                        <h1 className="font-semibold text-xl">Recent Commits</h1>
+                        <Link to={project.githubUrl} target="_blank" className="font-medium lowercase hover:underline flex items-center gap-1" rel="noreferrer">
+                            <p>Visit Repository</p>
+                            <FiExternalLink className="w-4 h-4" />
+                        </Link>
+                    </div>
+                    <button className="flex items-center gap-1 px-2.5 py-1.5 dark:bg-white dark:text-black dark:hover:bg-zinc-200 bg-zinc-950 text-white hover:bg-zinc-900 rounded-md text-sm font-semibold transition">
+                        {/* <IoMdRefresh className="w-5 h-5" /> */}
+                        <p>Refresh Commits</p>
+                    </button>
                 </div>
                 <div className="bg-zinc-100 dark:bg-zinc-900 shadow-sm shadow-zinc-400 dark:shadow-none rounded-md mt-3 h-auto overflow-auto pr-4 space-y-6 px-4 py-4">
                     {commits.length === 0 ? (
@@ -95,13 +102,9 @@ export default function ProjectDetailsRoute() {
                                                 @{new Date(commit.committedAt || "").toLocaleString()}
                                             </time>
                                         </div>
-                                        <p className="text-sm line-clamp-3 tracking-tight">{commit.commitMessage}</p>
-                                        {/* <p className="text-muted-foreground text-sm">{commit.commitHash}</p> */}
+                                        <p className="text-sm line-clamp-3 tracking-tight font-medium">{commit.commitMessage}</p>
                                     </div>
                                 </div>
-                                {/* <div>
-                                    <button className="text-sm font-medium px-2.5 py-1.5 dark:bg-white dark:text-black dark:hover:bg-zinc-200 bg-zinc-950 text-white hover:bg-zinc-900 rounded-md">Summarize Commit</button>
-                                </div> */}
                             </div>
                         ))
                     )}

@@ -55,7 +55,12 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 3. Only Query What You Need ("select" and "include"). Smaller queries = faster database = less memory = faster page loads.
 
 ## References
-1. [Input Types](https://www.w3schools.com/html/html_form_input_types.asp)
+- [Input Types](https://www.w3schools.com/html/html_form_input_types.asp)
+- [Text-Embeddings](https://ai.google.dev/gemini-api/docs/models#text-embedding)
+    - Output dimension size: 768
+    - Input token limit: 2,048
+    - RL: 1,500 requests per minute
+- [Qdrant JS](https://github.com/qdrant/qdrant-js)
 
 ## Application Layout
 - __dashboard.tsx__: Loading user and projects using loader function. In loader, checking if the user is authenticated. If not, redirect to login page. If yes, load user and projects. This is where our dashboard layout is defined (Sidebar) and using Outlet to pass the data to child routes 
@@ -88,4 +93,5 @@ EPERM: operation not permitted, rename 'D:\CODING\Remix\GitTalk_V2\generated\pri
 Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
 
 ## [LangChainJS](https://js.langchain.com/docs/introduction/) 
-- __githubLoader.server.ts__: Loading a Github repo into LangChainJS. Spits out an array of documents. Summarizing documents: summaries = getSummary(document.pageContent). Then, get embeddings of the summaries, store em in the Vector DB 
+- __githubLoader.server.ts__: Loading a Github repo into LangChainJS. Spits out an array of documents. Summarizing documents: summaries = getSummary(document.pageContent). Then, get embeddings of the summaries, store em in the Vector DB
+

@@ -39,7 +39,9 @@ model RepoCommit {
   id              String   @id @default(uuid())
   commitHash      String
   commitMessage   String
+  commitUrl       String
   authorName      String
+  authorUrl       String
   authorAvatarUrl String
   committedAt     DateTime
 
