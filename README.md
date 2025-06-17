@@ -61,6 +61,7 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
     - Input token limit: 2,048
     - RL: 1,500 requests per minute
 - [Qdrant JS](https://github.com/qdrant/qdrant-js)
+- [Weaviate](https://weaviate.io/developers/weaviate/quickstart)
 
 ## Application Layout
 - __dashboard.tsx__: Loading user and projects using loader function. In loader, checking if the user is authenticated. If not, redirect to login page. If yes, load user and projects. This is where our dashboard layout is defined (Sidebar) and using Outlet to pass the data to child routes 
@@ -94,4 +95,14 @@ Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
 
 ## [LangChainJS](https://js.langchain.com/docs/introduction/) 
 - __githubLoader.server.ts__: Loading a Github repo into LangChainJS. Spits out an array of documents. Summarizing documents: summaries = getSummary(document.pageContent). Then, get embeddings of the summaries, store em in the Vector DB
+
+
+
+## Know the code
+- summarizeCommits(diffs: string): summarizing commits - Completely irrelevant
+
+- summarizeCode(doc: Document): Takes a document and summarizing SINGLE document
+- generateEmbeddingsForSummary(summary: string): Takes a summary and generating embeddings for a summary
+- loadGithubRepo(githubUrl: string,userId?: string,projectId?: string,githubToken?: string): Loading a Github repo into LangChainJS. Spits out an array of documents.
+- generateEmbeddings(docs: Document[]): Generating embeddings for an array of summarized documents
 

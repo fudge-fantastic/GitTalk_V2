@@ -13,7 +13,7 @@ export async function action({ request }: { request: Request }) {
     const body = await request.formData();
     const projectName = body.get("projectName") as string;
     const githubUrl = body.get("githubUrl") as string;
-    const githubToken = body.get("githubToken") as string;
+    // const githubToken = body.get("githubToken") as string;
     const description = body.get("description") as string;
 
     const isValidGitHubUrl = isValidGitHubRepoUrl(githubUrl);
@@ -29,8 +29,8 @@ export async function action({ request }: { request: Request }) {
     }
     
     try {
-        const project = await createSingleProject({userId, projectName, githubUrl, githubToken, description});
-        console.log("Project created", { projectName, githubUrl, githubToken, description });
+        const project = await createSingleProject({userId, projectName, githubUrl, description});
+        console.log("Project created", { projectName, githubUrl, description });
         return redirect(`/dashboard/projects/${project.id}`);
     } catch (error) {
         console.error("Failed to create project", error);
@@ -74,7 +74,7 @@ export default function CreateProject() {
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
                         />
                     </label>
-                    <label>
+                    {/* <label>
                         <span className="text-sm text-muted-foreground font-medium">GitHub Access Token (Optional)</span>
                         <input
                             name="githubToken"
@@ -82,7 +82,7 @@ export default function CreateProject() {
                             placeholder="GitHub Access Token"
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
                         />
-                    </label>
+                    </label> */}
                     <label>
                         {/* <span className="text-sm text-muted-foreground font-medium">Description</span> */}
                         <input

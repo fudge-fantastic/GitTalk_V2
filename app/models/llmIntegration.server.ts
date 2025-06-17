@@ -1,3 +1,4 @@
+// llmIntegration.server.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Document } from "@langchain/core/documents";
 import dotenv from "dotenv";
@@ -11,22 +12,16 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export const embeddignModel = genAI.getGenerativeModel({
+  model: "text-embedding-004",
+});
 
+// Returns Summary of the commits (returns a string/text)
 export async function summarizeCommits(diffs: string): Promise<string> {
   // Example: https://github.com/fudge-fantastic/WordSmith/commit/55fc71d0b18a2e297427d85dcc2850c2b682cf80
   // https://github.com/fudge-fantastic/WordSmith/commit/<commitHash>.diff
 
-  const exampleDiff = `
-    - Modified index.html to update meta tags for SEO.
-    - Added new CSS file: light-605318cbe3a1.css.
-    - Removed unused JavaScript functions from utils.js.`;
-
-  const template = `You're an expert at summarizing code changes. Below is a diff of recent code changes. Please provide a neat and concise summary. Ensure to use neat format, for example, if the diff is: ${exampleDiff}
-    A good summary might look like:
-    * Updated meta tags in index.html for better SEO.
-    * Added new light theme stylesheet.
-    * Removed obsolete functions from utils.js.
-    Now, please summarize the following diff: ${diffs}`;
+  const template = `You're an expert at summarizing code changes. Summarize the following Git diff:${diffs}`;
 
   try {
     const result = await model.generateContent(template);
@@ -37,6 +32,7 @@ export async function summarizeCommits(diffs: string): Promise<string> {
   }
 }
 
+// Summarizing Code for each Document of a Github Repo
 export async function summarizeCode(doc: Document): Promise<string> {
   try {
     console.log("Getting Summary for", doc.metadata.source);
@@ -51,16 +47,19 @@ export async function summarizeCode(doc: Document): Promise<string> {
   }
 }
 
+// Generates Embeddings for the summary (returns an array/vectors)
 export async function generateEmbeddingsForSummary(summary: string) {
-  const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
   try {
-    const result = await model.embedContent(summary);
+    const result = await embeddignModel.embedContent(summary);
     const embedding = result.embedding;
     return embedding.values;
   } catch (error) {
-    console.log("Error generating embeddings from generateEmbeddings()", error);
-    return "Embeddings Failed from generateEmbeddings()";
+    console.log(
+      "Error generating embeddings from generateEmbeddingsForSummary()",
+      error
+    );
+    return "Embeddings Failed from generateEmbeddingsForSummary()";
   }
 }
 
-console.log(await generateEmbeddingsForSummary("The quick brown fox jumps over the lazy dog."));
+// console.log(await generateEmbeddingsForSummary("The quick brown fox jumps over the lazy dog."));
