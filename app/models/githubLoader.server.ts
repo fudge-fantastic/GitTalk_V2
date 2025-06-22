@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable import/no-named-as-default-member */
 // githubLoader.server.ts
-import dotenv from "dotenv";
+import dotenv from "dotenv"; dotenv.config();
 import weaviate from "weaviate-ts-client";
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
 import {
+  gemini_embeddings,
   generateEmbeddingsForSummary,
   summarizeCode,
 } from "./llmIntegration.server";
 import { Document } from "@langchain/core/documents";
 import { WeaviateStore } from "@langchain/weaviate";
-dotenv.config();
 
 const host = process.env.WEAVIATE_URL;
 const apiKey = process.env.WEAVIATE_API_KEY;
@@ -17,27 +19,11 @@ if (!host || !apiKey) {
   throw new Error("Missing WEAVIATE_URL or WEAVIATE_API_KEY in .env");
 }
 
-class GeminiEmbeddings {
-  async embedDocuments(texts: string[]): Promise<number[][]> {
-    return Promise.all(
-      texts.map(
-        (text) => generateEmbeddingsForSummary(text) as Promise<number[]>
-      )
-    );
-  }
-
-  async embedQuery(text: string): Promise<number[]> {
-    return generateEmbeddingsForSummary(text) as Promise<number[]>;
-  }
-}
-
 // Instantiating Vector-DB client
 const client = weaviate.client({
-  // eslint-disable-next-line import/no-named-as-default-member
   apiKey: apiKey ? new weaviate.ApiKey(apiKey) : undefined,
   scheme: "https",
   host,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }) as any;
 
 // Returning bunch of documents
@@ -107,10 +93,12 @@ export async function generateEmbeddings(docs: Document[]) {
 export async function storeInWeaviate(docs: Document[]) {
   const vectorStore = await WeaviateStore.fromDocuments(
     docs,
-    new GeminiEmbeddings(),
+    gemini_embeddings,
     {
       client,
       indexName: "GitTalkRepoDocs",
+      textKey: "pageContent", // Optional, but clarifies your intention
+      metadataKeys: ["source", "userId", "projectId", "repo", "summary"],
     }
   );
   return vectorStore;

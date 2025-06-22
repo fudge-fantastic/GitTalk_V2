@@ -1,0 +1,26 @@
+[
+  {
+    "pageContent": "/**\n * This is intended to be a basic starting point for linting in your app.\n * It relies on recommended configs out of the box for simplicity, but you can\n * and should modify this configuration to best suit your team's needs.\n */\n\n/** @type {import('eslint').Linter.Config} */\nmodule.exports = {\n  root: true,\n  parserOptions: {\n    ecmaVersion: \"latest\",\n    sourceType: \"module\",\n    ecmaFeatures: {\n      jsx: true,\n    },\n  },\n  env: {\n    browser: true,\n    commonjs: true,\n    es6: true,\n  },\n  ignorePatterns: [\"!**/.server\", \"!**/.client\"],\n\n  // Base config\n  extends: [\"eslint:recommended\"],\n\n  overrides: [\n    // React\n    {\n      files: [\"**/*.{js,jsx,ts,tsx}\"],\n      plugins: [\"react\", \"jsx-a11y\"],\n      extends: [\n        \"plugin:react/recommended\",\n        \"plugin:react/jsx-runtime\",\n        \"plugin:react-hooks/recommended\",\n        \"plugin:jsx-a11y/recommended\",\n      ],\n      settings: {\n        react: {\n          version: \"detect\",\n        },\n        formComponents: [\"Form\"],\n        linkComponents: [\n          { name: \"Link\", linkAttribute: \"to\" },\n          { name: \"NavLink\", linkAttribute: \"to\" },\n        ],\n        \"import/resolver\": {\n          typescript: {},\n        },\n      },\n    },\n\n    // Typescript\n    {\n      files: [\"**/*.{ts,tsx}\"],\n      plugins: [\"@typescript-eslint\", \"import\"],\n      parser: \"@typescript-eslint/parser\",\n      settings: {\n        \"import/internal-regex\": \"^~/\",\n        \"import/resolver\": {\n          node: {\n            extensions: [\".ts\", \".tsx\"],\n          },\n          typescript: {\n            alwaysTryTypes: true,\n          },\n        },\n      },\n      extends: [\n        \"plugin:@typescript-eslint/recommended\",\n        \"plugin:import/recommended\",\n        \"plugin:import/typescript\",\n      ],\n    },\n\n    // Node\n    {\n      files: [\".eslintrc.cjs\"],\n      env: {\n        node: true,\n      },\n    },\n  ],\n};\n",
+    "metadata": {
+      "source": ".eslintrc.cjs",
+      "repository": "https://github.com/fudge-fantastic/WordSmith",
+      "branch": "main"
+    }
+  },
+  {
+    "pageContent": "node_modules\n\n/.cache\n/build\n.env\n",
+    "metadata": {
+      "source": ".gitignore",
+      "repository": "https://github.com/fudge-fantastic/WordSmith",
+      "branch": "main"
+    }
+  },
+  {
+    "pageContent": "## LoginForm.tsx\n\n### For User Ineterface\n```tsx\nconst handleSubmit = (e: React.FormEvent) => {\n    if (!nameValue) setNameError(\"Name is required\");\n    if (!emailValue) setEmailError(\"Email is required\");\n    if (!passwordValue) setPasswordError(\"Password is required\");\n}\n```\nThese errors will be shown in the UI. And if none of these errors are present, the form will be submitted\n```tsx\nif (!nameError && !emailError && !passwordError) {\n      console.log(\"Form submitted\");\n    } else {\n      console.log(e, isRouteErrorResponse(Error));\n}\n```\n\n\n## login.tsx\nAction function waits for the form data to recieve\n- body: entire form (user details)\n- _action: SignUp or Login event\n- name: Will only appear if the user is Signing Up\n- email\n- password\n- bio? === optional\n",
+    "metadata": {
+      "source": "Logic.md",
+      "repository": "https://github.com/fudge-fantastic/WordSmith",
+      "branch": "main"
+    }
+  }
+]

@@ -1,6 +1,7 @@
 // llmIntegration.server.ts
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Document } from "@langchain/core/documents";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,9 +12,10 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-export const embeddignModel = genAI.getGenerativeModel({
+export const gemini_model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export const gemini_embeddings = new GoogleGenerativeAIEmbeddings({
   model: "text-embedding-004",
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
 // Returns Summary of the commits (returns a string/text)
@@ -24,7 +26,7 @@ export async function summarizeCommits(diffs: string): Promise<string> {
   const template = `You're an expert at summarizing code changes. Summarize the following Git diff:${diffs}`;
 
   try {
-    const result = await model.generateContent(template);
+    const result = await gemini_model.generateContent(template);
     return result.response.text();
   } catch (error) {
     console.log("Error Summarizing commits", error);
@@ -37,8 +39,8 @@ export async function summarizeCode(doc: Document): Promise<string> {
   try {
     console.log("Getting Summary for", doc.metadata.source);
     const code = doc.pageContent.slice(0, 10000);
-    const response = await model.generateContent([
-      `You're an intelligent senior software engineer who specialises in onboarding junior software engineers onto the projects and explaining them the purpose of the ${doc.metadata.source} file. Please provide a detailed and concise summary of the following code: ${code}`,
+    const response = await gemini_model.generateContent([
+      `You're a senior software engineer who specialises in explaining projects. Explain the purpose of ${doc.metadata.source} file. Please provide a detailed and concise summary of the following code: ${code}`,
     ]);
     return response.response.text();
   } catch (error) {
@@ -50,8 +52,8 @@ export async function summarizeCode(doc: Document): Promise<string> {
 // Generates Embeddings for the summary (returns an array/vectors)
 export async function generateEmbeddingsForSummary(summary: string) {
   try {
-    const result = await embeddignModel.embedContent(summary);
-    const embedding = result.embedding;
+    const result = await gemini_embeddings.embedQuery(summary);
+    const embedding = result;
     return embedding.values;
   } catch (error) {
     console.log(
