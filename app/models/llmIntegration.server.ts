@@ -50,17 +50,20 @@ export async function summarizeCode(doc: Document): Promise<string> {
 }
 
 // Generates Embeddings for the summary (returns an array/vectors)
+// result vs result.values in generateEmbeddingsForSummary:
+// The GoogleGenerativeAIEmbeddings embedQuery method typically returns number[] directly. So, const embedding = result; return embedding.values; might be incorrect. 
 export async function generateEmbeddingsForSummary(summary: string) {
   try {
     const result = await gemini_embeddings.embedQuery(summary);
-    const embedding = result;
-    return embedding.values;
+    // const embedding = result; return embedding.values;
+    return result;
   } catch (error) {
     console.log(
       "Error generating embeddings from generateEmbeddingsForSummary()",
       error
     );
-    return "Embeddings Failed from generateEmbeddingsForSummary()";
+    // Either throw error or return [], but returning empty array might cause trouble;
+    throw error;
   }
 }
 
