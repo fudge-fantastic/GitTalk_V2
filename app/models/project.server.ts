@@ -4,19 +4,16 @@ export async function createSingleProject({
   userId,
   projectName,
   githubUrl,
-  description,
 }: {
   userId: string;
   projectName: string;
   githubUrl: string;
-  description?: string;
 }) {
   return prisma.project.create({
     data: {
       userId,
       projectName,
       githubUrl,
-      description, // Will be optional
     },
   });
 }

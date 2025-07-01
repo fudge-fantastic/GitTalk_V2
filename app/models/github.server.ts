@@ -93,7 +93,7 @@ export async function getLatestCommits(projectId: string) {
     where: { projectId },
     // select: { commitHash: true },
     orderBy: { committedAt: "desc" },
-    take: 10
+    take: 20
   });
   const result : CommitResponse[] = []
   latestCommits.forEach((commit) => {

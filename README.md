@@ -47,7 +47,7 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 6. Work on Data Fetching, where and why to load data in certain route - MP
 7. Able to load commits via Octokit, but they're not being saved in DB. In order to update the DB, we can create a update button that will trigger the octokit to fetch the recent commits of the repo and update them in the DB.
 8. Add a validator for GitHub repo URL - Done
-9. WIP 
+9. Adding a caching mechanism  for the Vector DB
 
 ## Performance Tips
 1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)
@@ -107,7 +107,4 @@ Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
 - generateEmbeddings(docs: Document[]): Generating embeddings for an array of summarized documents
 
 
-## Jot down why we're not using JS for LLMs and embeddings
-- SDKs clashes: Cannot integrate langchain and vector DB SDKs together.
-- Too much complications while setting up the SDKs.
-- Cannot stress enough on how it sucks
+

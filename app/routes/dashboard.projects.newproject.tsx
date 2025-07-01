@@ -3,10 +3,13 @@ import { Form, json, redirect, useActionData } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
+import dotenv from "dotenv"; import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
+import { loadGithubDocs } from "~/models/test.server";
+dotenv.config();
 
 export function isValidGitHubRepoUrl(url: string): boolean {
-  const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
-  return regex.test(url.trim());
+    const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
+    return regex.test(url.trim());
 }
 
 export async function action({ request }: { request: Request }) {
@@ -14,7 +17,6 @@ export async function action({ request }: { request: Request }) {
     const projectName = body.get("projectName") as string;
     const githubUrl = body.get("githubUrl") as string;
     // const githubToken = body.get("githubToken") as string;
-    const description = body.get("description") as string;
 
     const isValidGitHubUrl = isValidGitHubRepoUrl(githubUrl);
     if (!isValidGitHubUrl) {
@@ -23,17 +25,23 @@ export async function action({ request }: { request: Request }) {
 
     const session = await getSession(request.headers.get("Cookie"));
     const userId = session.get("userId");
-    
-    if(!userId) {
+
+    if (!userId) {
         return json({ error: "Unauthorized User" }, { status: 401 });
     }
-    
+
     try {
-        const project = await createSingleProject({userId, projectName, githubUrl, description});
-        console.log("Project created", { projectName, githubUrl, description });
+        const project = await createSingleProject({ userId, projectName, githubUrl });
+        console.log("✅ Project created:", { projectName, githubUrl });
+
+        const collection_name = process.env.COLLECTION_NAME || "";
+        await createCollection(collection_name);
+        const docs = await loadGithubDocs(githubUrl, userId, project.id);
+        await upsertSummarizedDocsToQdrant(docs, collection_name);
+
         return redirect(`/dashboard/projects/${project.id}`);
     } catch (error) {
-        console.error("Failed to create project", error);
+        console.error("❌ Failed to create project and vector data:", error);
         return json({ error: "Failed to create project" }, { status: 500 });
     }
 }
@@ -71,24 +79,6 @@ export default function CreateProject() {
                             type="url"
                             placeholder="https://github.com/username/repo"
                             required
-                            className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
-                        />
-                    </label>
-                    {/* <label>
-                        <span className="text-sm text-muted-foreground font-medium">GitHub Access Token (Optional)</span>
-                        <input
-                            name="githubToken"
-                            type="password"
-                            placeholder="GitHub Access Token"
-                            className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
-                        />
-                    </label> */}
-                    <label>
-                        {/* <span className="text-sm text-muted-foreground font-medium">Description</span> */}
-                        <input
-                            name="description"
-                            type="hidden"
-                            placeholder="GitHub Access Token"
                             className="bg-zinc-200 dark:bg-zinc-900 dark:text-white text-zinc-950 p-2 md:text-base text-sm w-full rounded-md outline-none font-medium"
                         />
                     </label>

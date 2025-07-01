@@ -5,26 +5,23 @@ import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import dotenv from "dotenv";
 dotenv.config();
 
-// eslint-disable-next-line no-undef
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
+const gemini_apiKey = process.env.GEMINI_API_KEY;
+if (!gemini_apiKey) {
   throw new Error("API key not found.");
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
+const genAI = new GoogleGenerativeAI(gemini_apiKey);
 export const gemini_model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 export const gemini_embeddings = new GoogleGenerativeAIEmbeddings({
   model: "text-embedding-004",
-  apiKey: process.env.GEMINI_API_KEY,
+  apiKey: gemini_apiKey,
 });
 
 // Returns Summary of the commits (returns a string/text)
+// Example: https://github.com/fudge-fantastic/WordSmith/commit/55fc71d0b18a2e297427d85dcc2850c2b682cf80
+// https://github.com/fudge-fantastic/WordSmith/commit/<commitHash>.diff
 export async function summarizeCommits(diffs: string): Promise<string> {
-  // Example: https://github.com/fudge-fantastic/WordSmith/commit/55fc71d0b18a2e297427d85dcc2850c2b682cf80
-  // https://github.com/fudge-fantastic/WordSmith/commit/<commitHash>.diff
-
   const template = `You're an expert at summarizing code changes. Summarize the following Git diff:${diffs}`;
-
   try {
     const result = await gemini_model.generateContent(template);
     return result.response.text();
@@ -63,8 +60,7 @@ export async function generateEmbeddingsForSummary(summary: string) {
       error
     );
     // Either throw error or return [], but returning empty array might cause trouble;
+    // return undefined;
     throw error;
   }
 }
-
-// console.log(await generateEmbeddingsForSummary("The quick brown fox jumps over the lazy dog."));

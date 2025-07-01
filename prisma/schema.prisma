@@ -49,3 +49,13 @@ model RepoCommit {
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   @@index([commitHash])
 }
+
+model FileEmbeddingCache {
+  id           String   @id @default(uuid())
+  projectId    String
+  filePath     String
+  contentHash  String
+  summary      String
+  embedding    Float[]  // Use `Json` if Prisma doesn’t support Float[]
+  createdAt    DateTime @default(now())
+}
