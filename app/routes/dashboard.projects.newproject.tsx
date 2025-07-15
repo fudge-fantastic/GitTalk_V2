@@ -4,7 +4,7 @@ import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
 import dotenv from "dotenv"; import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
-import { loadGithubDocs } from "~/models/test.server";
+import { loadGithubDocs } from "~/models/langchain.server";
 dotenv.config();
 
 export function isValidGitHubRepoUrl(url: string): boolean {

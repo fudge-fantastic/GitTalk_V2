@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import { collection_name, createCollection, deleteProjectFromCollection, upsertSummarizedDocsToQdrant } from "./qdrant.server";
-import { loadGithubDocs } from "./test.server";
+import { loadGithubDocs } from "./langchain.server";
 dotenv.config();
 
 async function run() {
-  const githubUrl = "https://github.com/fudge-fantastic/GitTalk_V2";
+  const githubUrl = "https://github.com/fudge-fantastic/WordSmith";
   const userId = "aaditya";
   const projectId = "git-talk-v2";
 

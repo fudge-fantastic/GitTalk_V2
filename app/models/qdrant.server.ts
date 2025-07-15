@@ -1,16 +1,25 @@
 // qdrant.server.ts
+// To run locally:
+// docker pull qdrant/qdrant
+// docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_data:/qdrant/storage qdrant/qdrant
+// http://localhost:6333/dashboard
+
 import { QdrantClient } from "@qdrant/js-client-rest";
 import dotenv from "dotenv"; dotenv.config();
 import { Document } from "@langchain/core/documents";
-import { generateEmbeddingsForSummary } from "./gemini.server";
 
 export const collection_name= process.env.COLLECTION_NAME;
 
-// Instantiating Vector-DB client
-export const qdrant = new QdrantClient({
+// Instantiating Vector-DB client (For cloud)
+export const qdrant_cloud = new QdrantClient({
   url: process.env.QDRANT_URL,
   apiKey: process.env.QDRANT_API_KEY,
 });
+
+// For local
+export const qdrant = new QdrantClient({
+  url: "http://localhost:6333",
+})
 
 // Create collection
 export async function createCollection(collectionName: string) {
@@ -40,19 +49,14 @@ export async function upsertSummarizedDocsToQdrant(
 ) {
   const points = await Promise.all(
     documents.map(async (doc) => {
+      // These should now come from metadata after caching check in loadGithubDocs
       const summary = doc.metadata.summary as string;
-      let embedding: number[] | undefined;
-      try {
-        embedding = await generateEmbeddingsForSummary(summary);
-      } catch (error) {
-        console.error(
-          `Failed to generate embedding for doc ${doc.metadata.source}:`,
-          error
-        );
-        return null; // Decide how to handle this: skip the document, use a default embedding, etc. Return null to filter out this point later
-      }
+      const embedding = doc.metadata.embedding as number[]; // Now guaranteed to be there if coming from cache or newly generated
 
-      if (!embedding) return null; 
+      if (!embedding) {
+        console.error(`Document ${doc.metadata.source} has no embedding. Skipping.`);
+        return null;
+      }
 
       return {
         id: crypto.randomUUID(),
@@ -66,7 +70,7 @@ export async function upsertSummarizedDocsToQdrant(
         },
       };
     })
-  ).then((results) => results.filter((point) => point !== null)); // Filter out failed points
+  ).then((results) => results.filter((point) => point !== null));
 
   if (points.length > 0) {
     await qdrant.upsert(collectionName, { points });

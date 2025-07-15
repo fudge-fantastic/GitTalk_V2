@@ -53,6 +53,26 @@ High Priority - HP, Medium Priority - MP, Low Priority - LP
 1. Use .server.ts suffix for files that touch server-only code like Prisma. That way Remix won't accidentally try to send Prisma into the browser bundle (Performance + security)
 2. Since our RepoCommit model has optional summary, we can later build a queue system (like background jobs) to summarize commits when pendingSummary is true (eg - a cron job or background worker)
 3. Only Query What You Need ("select" and "include"). Smaller queries = faster database = less memory = faster page loads.
+4. Re-ingestion option for vector DB
+```tsx
+// In your run function or API endpoint for re-ingestion:
+async function reIngestProject(githubUrl: string, userId: string, projectId: string) {
+    if (!collection_name) {
+        throw new Error("❌ COLLECTION_NAME is missing in .env");
+    }
+
+    // 1. Delete all existing points for this project in Qdrant (and cache if desired)
+    await deleteProjectFromCollection(projectId); // This will clear old points
+
+    // 2. Load and process the (potentially updated) GitHub documents
+    const docs = await loadGithubDocs(githubUrl, userId, projectId);
+
+    // 3. Upsert the new (or re-cached) documents
+    await upsertSummarizedDocsToQdrant(docs, collection_name);
+    console.log(`✅ Re-ingestion complete for project ${projectId}.`);
+}
+```
+5. Data is being stored in VectorDB even if the Summarization function fails.
 
 ## References
 - [Input Types](https://www.w3schools.com/html/html_form_input_types.asp)
