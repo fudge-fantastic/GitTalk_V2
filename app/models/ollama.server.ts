@@ -1,5 +1,10 @@
-import { Ollama } from "@langchain/ollama";
+import { Ollama, OllamaEmbeddings } from "@langchain/ollama";
 import { promises as fs } from "fs";
+
+const ollama_embeddings = new OllamaEmbeddings({
+  model: "nomic-embed-text:latest", 
+  baseUrl: "http://127.0.0.1:11434", 
+});
 
 export const ollama_model = new Ollama({
   baseUrl: "http://127.0.0.1:11434",
@@ -11,7 +16,7 @@ const inputText =
 const pre_input = "Please summarize the given code for me:\n";
 
 // Works slow but effective
-async function saveText() {
+export async function saveText() {
   try {
     const completion = await ollama_model.invoke(pre_input + inputText);
     await fs.writeFile("my_summary.txt", completion, "utf8");
@@ -21,4 +26,17 @@ async function saveText() {
   }
 }
 
-saveText();
+export async function ollamaEmbeddingsForSummary(summary: string) {
+  try {
+    const result = await ollama_embeddings.embedQuery(summary);
+    console.log("Embeddings generated");
+    return result;
+  } catch (error) {
+    console.log(
+      "Error generating embeddings from ollamaEmbeddingsForSummary()",
+      error
+    );
+    // throw error;
+    return []
+  }
+}

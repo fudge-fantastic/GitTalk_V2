@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Document } from "@langchain/core/documents";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import dotenv from "dotenv";
+import pThrottle from "p-throttle";
 dotenv.config();
 
 const gemini_apiKey = process.env.GEMINI_API_KEY;
@@ -31,20 +32,25 @@ export async function summarizeCommits(diffs: string): Promise<string> {
   }
 }
 
+const throttle = pThrottle({
+  limit: 14,          // 14 requests
+  interval: 80 * 1000 // ...per 80 seconds (1 minute, 20 seconds)
+});
 // Summarizing Code for each Document of a Github Repo
-export async function summarizeCode(doc: Document): Promise<string> {
+export const getSafeSummary = throttle(async (doc: Document) => {
   try {
-    console.log("Getting Summary for", doc.metadata.source);
-    const code = doc.pageContent.slice(0, 10000);
+    console.log("Getting Summary for:", doc.metadata.source);
+    const code = doc.pageContent.slice(0, 10000); // Limiting to first 10,000 characters
     const response = await gemini_model.generateContent([
-      `You're a senior software engineer who specialises in explaining projects. Explain the purpose of ${doc.metadata.source} file. Please provide a detailed and concise summary of the following code: ${code}`,
+      `Explain the purpose of ${doc.metadata.source} file. Please provide a concise and detailed summary of the following code: ${code}`,
     ]);
     return response.response.text();
   } catch (error) {
-    console.log("Error Summarizing code from summarizeCode()", error);
-    return "Summary Failed, from summarizeCode()";
+    console.error("Error summarizing code:", error);
+    return "Summary failed.";
   }
-}
+});
+
 
 // Generates Embeddings for the summary (returns an array/vectors)
 // result vs result.values in generateEmbeddingsForSummary:

@@ -1,11 +1,10 @@
-## Types of Pending UI
+## Pending UIs
 1. Busy indicators
 2. Optimistic UI 
 3. Skeleton fallbacks 
 
 ## Route Configuration
 1. [Nested Routes (segmenting routes)](https://remix.run/docs/en/main/discussion/routes#what-is-nested-routing)
-
 
 ## [Prisma ORM](https://www.prisma.io/docs/getting-started/quickstart-sqlite) - [Getting Started](https://www.prisma.io/docs/getting-started)
 
@@ -117,7 +116,6 @@ Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
 - __githubLoader.server.ts__: Loading a Github repo into LangChainJS. Spits out an array of documents. Summarizing documents: summaries = getSummary(document.pageContent). Then, get embeddings of the summaries, store em in the Vector DB
 
 
-
 ## Know the code
 - summarizeCommits(diffs: string): summarizing commits - Completely irrelevant
 
@@ -126,5 +124,11 @@ Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
 - loadGithubRepo(githubUrl: string,userId?: string,projectId?: string,githubToken?: string): Loading a Github repo into LangChainJS. Spits out an array of documents.
 - generateEmbeddings(docs: Document[]): Generating embeddings for an array of summarized documents
 
-
+## Local Setup for Qdrant or any VectorDB
+1. Ensure to install dependencies and run the Docker container
+```shell
+docker pull qdrant/qdrant
+docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_data:/qdrant/storage qdrant/qdrant
+http://localhost:6333/dashboard
+```
 

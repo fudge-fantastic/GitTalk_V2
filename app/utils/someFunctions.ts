@@ -1,0 +1,33 @@
+const removeUnwanted = [
+  "*.md",
+  "*.db",
+  "*.json",
+  "*.yaml",
+  "*.yml",
+  "*.txt",
+  "*.log",
+  "*.lock",
+  "*.mdx",
+  "*.cjs",
+  "LICENCE",
+  "LICENSE",
+  ".gitignore",
+  ".gitattributes",
+  ".editorconfig",
+  ".DS_Store",
+  "node_modules/",
+  "generated/",
+  "dist/",
+  "build/",
+  "out/",
+  "tmp/",
+  "temp/",
+  "coverage/",
+  "*.test.ts",
+  "*.spec.ts",
+  "*.test.js",
+  "*.spec.js",
+];
+
+
+export { removeUnwanted };

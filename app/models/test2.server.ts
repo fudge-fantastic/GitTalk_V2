@@ -4,7 +4,7 @@ import { loadGithubDocs } from "./langchain.server";
 dotenv.config();
 
 async function run() {
-  const githubUrl = "https://github.com/fudge-fantastic/WordSmith";
+  const githubUrl = "https://github.com/fudge-fantastic/GitTalk_V2";
   const userId = "aaditya";
   const projectId = "git-talk-v2";
 
