@@ -5,10 +5,11 @@
 // http://localhost:6333/dashboard
 
 import { QdrantClient } from "@qdrant/js-client-rest";
-import dotenv from "dotenv"; dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 import { Document } from "@langchain/core/documents";
 
-export const collection_name= process.env.COLLECTION_NAME;
+export const collection_name = process.env.COLLECTION_NAME;
 
 // Instantiating Vector-DB client (For cloud)
 export const qdrant_cloud = new QdrantClient({
@@ -19,7 +20,7 @@ export const qdrant_cloud = new QdrantClient({
 // For local
 export const qdrant = new QdrantClient({
   url: "http://localhost:6333",
-})
+});
 
 // Create collection
 export async function createCollection(collectionName: string) {
@@ -54,7 +55,9 @@ export async function upsertSummarizedDocsToQdrant(
       const embedding = doc.metadata.embedding as number[]; // Now guaranteed to be there if coming from cache or newly generated
 
       if (!embedding) {
-        console.error(`Document ${doc.metadata.source} has no embedding. Skipping.`);
+        console.error(
+          `Document ${doc.metadata.source} has no embedding. Skipping.`
+        );
         return null;
       }
 
@@ -99,4 +102,35 @@ export async function deleteProjectFromCollection(projectId: string) {
   } catch (error) {
     console.error("❌ Deletion failed for projectId=", projectId, error);
   }
+}
+
+export async function searchPointsInQdrant({
+  collectionName,
+  queryVector,
+  topK = 10,
+  repoUrl,
+}: {
+  collectionName: string;
+  queryVector: number[];
+  topK?: number;
+  repoUrl?: string;
+}) {
+  const filter = repoUrl
+    ? {
+        must: [
+          {
+            key: "repo",
+            match: { value: repoUrl },
+          },
+        ],
+      }
+    : undefined;
+
+  const results = await qdrant.search(collectionName, {
+    vector: queryVector,
+    limit: topK,
+    filter,
+  });
+
+  return results;
 }

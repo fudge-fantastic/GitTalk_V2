@@ -4,6 +4,8 @@ import { Document } from "@langchain/core/documents";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import dotenv from "dotenv";
 import pThrottle from "p-throttle";
+import { ollamaEmbeddingsForSummary } from "./ollama.server";
+import { searchPointsInQdrant } from "./qdrant.server";
 dotenv.config();
 
 const gemini_apiKey = process.env.GEMINI_API_KEY;
@@ -12,7 +14,9 @@ if (!gemini_apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(gemini_apiKey);
-export const gemini_model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export const gemini_model = genAI.getGenerativeModel({
+  model: "gemini-2.0-flash",
+});
 export const gemini_embeddings = new GoogleGenerativeAIEmbeddings({
   model: "text-embedding-004",
   apiKey: gemini_apiKey,
@@ -33,8 +37,8 @@ export async function summarizeCommits(diffs: string): Promise<string> {
 }
 
 const throttle = pThrottle({
-  limit: 14,          // 14 requests
-  interval: 80 * 1000 // ...per 80 seconds (1 minute, 20 seconds)
+  limit: 14, // 14 requests
+  interval: 80 * 1000, // ...per 80 seconds (1 minute, 20 seconds)
 });
 // Summarizing Code for each Document of a Github Repo
 export const getSafeSummary = throttle(async (doc: Document) => {
@@ -51,10 +55,9 @@ export const getSafeSummary = throttle(async (doc: Document) => {
   }
 });
 
-
 // Generates Embeddings for the summary (returns an array/vectors)
 // result vs result.values in generateEmbeddingsForSummary:
-// The GoogleGenerativeAIEmbeddings embedQuery method typically returns number[] directly. So, const embedding = result; return embedding.values; might be incorrect. 
+// The GoogleGenerativeAIEmbeddings embedQuery method typically returns number[] directly. So, const embedding = result; return embedding.values; might be incorrect.
 export async function generateEmbeddingsForSummary(summary: string) {
   try {
     const result = await gemini_embeddings.embedQuery(summary);
@@ -68,5 +71,37 @@ export async function generateEmbeddingsForSummary(summary: string) {
     // Either throw error or return [], but returning empty array might cause trouble;
     // return undefined;
     throw error;
+  }
+}
+
+export async function askQuestionsBasedOnCodebase({
+  userQuery,
+  repoUrl,
+  topK = 10
+}: {
+  userQuery: string;
+  repoUrl: string;
+  projectId?: string;
+  topK?: number;
+}) {
+  if (!userQuery || !repoUrl) {
+    throw new Error("Missing required parameters: userQuery and repoUrl");
+  }
+
+  try {
+    const cleanedQuery = userQuery.trim();
+    const queryEmbedding = await ollamaEmbeddingsForSummary(cleanedQuery);
+    
+    const results = await searchPointsInQdrant({
+      collectionName: process.env.COLLECTION_NAME!,
+      queryVector: queryEmbedding,
+      topK,
+      repoUrl,
+    });
+
+    return results;
+  } catch (error) {
+    console.error("❌ askQuestionsBasedOnCodebase error:", error);
+    throw new Error("Failed to answer question based on codebase");
   }
 }

@@ -5,18 +5,13 @@ import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
 import dotenv from "dotenv"; import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
 import { loadGithubDocs } from "~/models/langchain.server";
+import { isValidGitHubRepoUrl } from "~/utils/someFunctions";
 dotenv.config();
-
-export function isValidGitHubRepoUrl(url: string): boolean {
-    const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
-    return regex.test(url.trim());
-}
 
 export async function action({ request }: { request: Request }) {
     const body = await request.formData();
     const projectName = body.get("projectName") as string;
     const githubUrl = body.get("githubUrl") as string;
-    // const githubToken = body.get("githubToken") as string;
 
     const isValidGitHubUrl = isValidGitHubRepoUrl(githubUrl);
     if (!isValidGitHubUrl) {

@@ -29,5 +29,10 @@ const removeUnwanted = [
   "*.spec.js",
 ];
 
+function isValidGitHubRepoUrl(url: string): boolean {
+    const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
+    return regex.test(url.trim());
+}
 
-export { removeUnwanted };
+
+export { removeUnwanted, isValidGitHubRepoUrl };

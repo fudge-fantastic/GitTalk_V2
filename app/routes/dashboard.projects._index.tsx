@@ -12,6 +12,7 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
 import { ActionFunction, redirect } from "@remix-run/node";
 import { prisma } from "~/db.server";
+import { deleteProjectFromCollection } from "~/models/qdrant.server";
 
 export interface ContextData {
   projects: ProjectData[];
@@ -35,6 +36,7 @@ export const action: ActionFunction = async ({ request }) => {
       where: { id: projectId },
     });
 
+    await deleteProjectFromCollection(projectId);
     return redirect("/dashboard/projects");
   }
   return null;
