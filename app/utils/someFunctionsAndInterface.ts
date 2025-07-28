@@ -23,6 +23,7 @@ const removeUnwanted = [
   "tmp/",
   "temp/",
   "coverage/",
+  ".ipynb_checkpoints/",
   "*.test.ts",
   "*.spec.ts",
   "*.test.js",
@@ -34,5 +35,28 @@ function isValidGitHubRepoUrl(url: string): boolean {
     return regex.test(url.trim());
 }
 
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(dateString));
+}
 
-export { removeUnwanted, isValidGitHubRepoUrl };
+export interface SingleProjectData {
+    id: string;
+    projectName: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    githubUrl: string;
+}
+
+export interface ProjectData {
+  id: string;
+  projectName: string;
+  description: string;
+  createdAt: string;
+}
+
+export { removeUnwanted, isValidGitHubRepoUrl, formatDate };

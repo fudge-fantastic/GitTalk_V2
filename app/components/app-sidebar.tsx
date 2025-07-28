@@ -117,29 +117,37 @@ function SideBarGroup2Component({ projects }: { projects: { id: string; projectN
     <SidebarGroup>
       <SidebarGroupLabel className="text-muted-foreground font-semibold">Projects</SidebarGroupLabel>
       <SidebarGroupAction title="Add Project">
-        <Link to="/dashboard/projects/newproject">
+        <Link to="/dashboard/projects/createProject">
           <FaPlus /> <span className="sr-only">Add Project</span>
         </Link>
       </SidebarGroupAction>
       <SidebarGroupContent>
-        <SidebarMenu>
-          {projects.filter((r, i) => i < 5).map((item) => (
-            <SidebarMenuItem key={item.projectName}>
-              <SidebarMenuButton asChild>
-                <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center text-xs">
-                    {item.projectName[0].toUpperCase()}
-                  </div>
-                  <span className="font-medium">{item.projectName}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        {projects.length === 0 ? (
+          <div className="flex items-center justify-center mt-2">
+            <span className="text-sm font-medium text-muted-foreground">No projects</span>
+          </div>
+        ) : (
+          <SidebarMenu>
+            {projects.filter((r, i) => i < 5).map((item) => (
+              <SidebarMenuItem key={item.projectName}>
+                <SidebarMenuButton asChild>
+                  <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center text-xs">
+                      {item.projectName[0].toUpperCase()}
+                    </div>
+                    <span className="font-medium">{item.projectName}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        )}
+        {projects.length > 5 && (
+          <div className="flex items-center justify-center mt-2">
+            <button className="text-sm font-medium text-muted-foreground hover:underline hover:underline-offset-2">Show more...</button>
+          </div>
+        )}
       </SidebarGroupContent>
-      <div className="flex items-center justify-center mt-2">
-        <button className="text-sm font-medium text-muted-foreground hover:underline hover:underline-offset-2">Show more...</button>
-      </div>
     </SidebarGroup>
   )
 }

@@ -7,16 +7,7 @@ import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { CommitResponse, pollCommits } from "~/models/github.server";
 import { FiExternalLink } from "react-icons/fi";
 import { useState } from "react"; import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "~/components/ui/dialog"
-// import { IoMdRefresh } from "react-icons/io";
-
-export interface SingleProjectData {
-    id: string;
-    projectName: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    githubUrl: string;
-}
+import { SingleProjectData } from "~/utils/someFunctionsAndInterface";
 
 export async function loader({ params }: LoaderFunctionArgs) {
     const projectId = params.id;

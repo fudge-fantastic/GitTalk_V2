@@ -1,8 +1,9 @@
 // qdrant.server.ts
 // To run locally:
 // docker pull qdrant/qdrant
-// docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_data:/qdrant/storage qdrant/qdrant
+// docker run --name git-talk-container -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_data:/qdrant/storage qdrant/qdrant
 // http://localhost:6333/dashboard
+// Try not to re-run the 'docker run' command, use 'docker start git-talk-container'
 
 import { QdrantClient } from "@qdrant/js-client-rest";
 import dotenv from "dotenv";
@@ -28,6 +29,10 @@ export async function createCollection(collectionName: string) {
     const exists = await qdrant
       .getCollections()
       .then((res) => res.collections.some((c) => c.name === collectionName));
+    
+    if (exists) {
+      console.log("Collection already exists:", collectionName);
+    }
 
     if (!exists) {
       await qdrant.createCollection(collectionName, {

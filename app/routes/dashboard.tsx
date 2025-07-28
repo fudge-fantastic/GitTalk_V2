@@ -10,8 +10,8 @@ import { requireUserSession } from "~/session.server";
 
 // Fetching entire User and Projects data
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await requireUserSession(request); // get the session
-  const projects = await getProjectsForUser(session.userId); // get the projects
+  const session = await requireUserSession(request); 
+  const projects = await getProjectsForUser(session.userId); 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
     select: {

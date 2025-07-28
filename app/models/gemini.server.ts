@@ -22,9 +22,6 @@ export const gemini_embeddings = new GoogleGenerativeAIEmbeddings({
   apiKey: gemini_apiKey,
 });
 
-// Returns Summary of the commits (returns a string/text)
-// Example: https://github.com/fudge-fantastic/WordSmith/commit/55fc71d0b18a2e297427d85dcc2850c2b682cf80
-// https://github.com/fudge-fantastic/WordSmith/commit/<commitHash>.diff
 export async function summarizeCommits(diffs: string): Promise<string> {
   const template = `You're an expert at summarizing code changes. Summarize the following Git diff:${diffs}`;
   try {
@@ -46,7 +43,7 @@ export const getSafeSummary = throttle(async (doc: Document) => {
     console.log("Getting Summary for:", doc.metadata.source);
     const code = doc.pageContent.slice(0, 10000); // Limiting to first 10,000 characters
     const response = await gemini_model.generateContent([
-      `Explain the purpose of ${doc.metadata.source} file. Please provide a concise and detailed summary of the following code: ${code}`,
+      `Your task is to explain the purpose of ${doc.metadata.source} file. Please provide a detailed summary in non-markdown format of the following code: ${code}`,
     ]);
     return response.response.text();
   } catch (error) {
@@ -55,8 +52,6 @@ export const getSafeSummary = throttle(async (doc: Document) => {
   }
 });
 
-// Generates Embeddings for the summary (returns an array/vectors)
-// result vs result.values in generateEmbeddingsForSummary:
 // The GoogleGenerativeAIEmbeddings embedQuery method typically returns number[] directly. So, const embedding = result; return embedding.values; might be incorrect.
 export async function generateEmbeddingsForSummary(summary: string) {
   try {
@@ -68,12 +63,12 @@ export async function generateEmbeddingsForSummary(summary: string) {
       "Error generating embeddings from generateEmbeddingsForSummary()",
       error
     );
-    // Either throw error or return [], but returning empty array might cause trouble;
-    // return undefined;
+    // return [];
     throw error;
   }
 }
 
+// Set a custom parameter to limit the number of results
 export async function askQuestionsBasedOnCodebase({
   userQuery,
   repoUrl,
@@ -81,7 +76,6 @@ export async function askQuestionsBasedOnCodebase({
 }: {
   userQuery: string;
   repoUrl: string;
-  projectId?: string;
   topK?: number;
 }) {
   if (!userQuery || !repoUrl) {

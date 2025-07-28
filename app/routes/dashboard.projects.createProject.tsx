@@ -3,10 +3,9 @@ import { Form, json, redirect, useActionData } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
-import dotenv from "dotenv"; import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
+import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
 import { loadGithubDocs } from "~/models/langchain.server";
-import { isValidGitHubRepoUrl } from "~/utils/someFunctions";
-dotenv.config();
+import { isValidGitHubRepoUrl } from "~/utils/someFunctionsAndInterface";
 
 export async function action({ request }: { request: Request }) {
     const body = await request.formData();

@@ -1,7 +1,5 @@
 // routes/dashboard.projects._index.tsx
 import { Form, Link, useOutletContext } from "@remix-run/react";
-import { Plus } from "lucide-react";
-import { ProjectData } from "./dashboard.projects";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,17 +11,10 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { ActionFunction, redirect } from "@remix-run/node";
 import { prisma } from "~/db.server";
 import { deleteProjectFromCollection } from "~/models/qdrant.server";
+import { formatDate, ProjectData } from "~/utils/someFunctionsAndInterface";
 
 export interface ContextData {
   projects: ProjectData[];
-}
-
-export function formatDate(dateString: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(dateString));
 }
 
 export const action: ActionFunction = async ({ request }) => {
@@ -112,8 +103,7 @@ export default function ProjectsIndex() {
       ))}
 
       {/* New Project Card */}
-      <Link to="/dashboard/projects/newproject" className="gap-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-950 dark:hover:bg-zinc-900 transition rounded-md flex items-center justify-center text-center py-10 px-5 font-semibold text-zinc-600 dark:text-zinc-300 border border-dashed border-zinc-400">
-        <Plus className="w-6 h-6" />
+      <Link to="/dashboard/projects/createProject" className="gap-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-950 dark:hover:bg-zinc-900 transition rounded-md flex items-center justify-center text-center py-10 px-5 font-semibold text-zinc-600 dark:text-zinc-300 border border-dashed border-zinc-400">
         <p className="md:text-lg text-sm">Create New Project</p>
       </Link>
     </div>

@@ -34,13 +34,12 @@ export function Layout({ children }: Readonly<{ children: React.ReactNode }>) {
         <Links />
       </head>
       <body>
-
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ScrollArea className="h-screen">
             {children}
-            <ScrollRestoration />
-            <Scripts />
           </ScrollArea>
+          <ScrollRestoration />
+          <Scripts />
         </ThemeProvider>
       </body>
     </html>

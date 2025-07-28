@@ -4,7 +4,7 @@ import { GithubRepoLoader } from "@langchain/community/document_loaders/web/gith
 import { Document } from "@langchain/core/documents";
 // import fs from "fs/promises";
 import { ollamaEmbeddingsForSummary } from "./ollama.server";
-import { removeUnwanted } from "~/utils/someFunctions";
+import { removeUnwanted } from "~/utils/someFunctionsAndInterface";
 import { getSafeSummary } from "./gemini.server";
 
 // Langchain's + Github API
