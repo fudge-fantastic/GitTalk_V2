@@ -23,74 +23,77 @@ export const qdrant = new QdrantClient({
   url: "http://localhost:6333",
 });
 
-// Create collection
+// 1. Create Collection
 export async function createCollection(collectionName: string) {
   try {
-    const exists = await qdrant
-      .getCollections()
-      .then((res) => res.collections.some((c) => c.name === collectionName));
-    
-    if (exists) {
-      console.log("Collection already exists:", collectionName);
+    const existing = await qdrant.getCollections();
+    const alreadyExists = existing.collections.some(
+      (c) => c.name === collectionName
+    );
+
+    if (alreadyExists) {
+      console.log(`✅ Collection "${collectionName}" already exists.`);
+      return;
     }
 
-    if (!exists) {
-      await qdrant.createCollection(collectionName, {
-        vectors: {
-          size: 768,
-          distance: "Cosine",
-        },
-      });
-      console.log("Collection created:", collectionName);
-    }
+    await qdrant.createCollection(collectionName, {
+      vectors: {
+        size: 768,
+        distance: "Cosine",
+      },
+    });
+
+    console.log(`🆕 Created collection: ${collectionName}`);
   } catch (error) {
-    console.error("Error creating collection:", error);
+    console.error("❌ Failed to create collection:", error);
   }
 }
 
-// Upsert documents into Qdrant
-export async function upsertSummarizedDocsToQdrant(
+// 2. Upsert Embedded Chunks
+export async function upsertChunksToQdrant(
   documents: Document[],
   collectionName: string
 ) {
-  const points = await Promise.all(
-    documents.map(async (doc) => {
-      // These should now come from metadata after caching check in loadGithubDocs
-      const summary = doc.metadata.summary as string;
-      const embedding = doc.metadata.embedding as number[]; // Now guaranteed to be there if coming from cache or newly generated
+  const points = documents
+    .map((doc) => {
+      const vector = doc.metadata.embedding as number[] | undefined;
+      const { projectId, userId, repo, source, language } = doc.metadata;
 
-      if (!embedding) {
-        console.error(
-          `Document ${doc.metadata.source} has no embedding. Skipping.`
-        );
+      if (!vector || !Array.isArray(vector)) {
+        console.warn(`⚠️ Skipping document with missing embedding: ${source}`);
         return null;
       }
 
       return {
         id: crypto.randomUUID(),
-        vector: embedding,
+        vector,
         payload: {
-          summary,
-          source: doc.metadata.source,
-          projectId: doc.metadata.projectId,
-          userId: doc.metadata.userId,
-          repo: doc.metadata.repo,
+          pageContent: doc.pageContent,
+          source,
+          repo,
+          projectId,
+          userId,
+          language,
         },
       };
     })
-  ).then((results) => results.filter((point) => point !== null));
+    .filter((point) => point !== null) as {
+      id: string;
+      vector: number[];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      payload: Record<string, any>;
+    }[];
 
-  if (points.length > 0) {
-    await qdrant.upsert(collectionName, { points });
-    console.log(
-      `✅ Upserted ${points.length} summarized documents to ${collectionName}`
-    );
-  } else {
-    console.log("No valid documents to upsert after processing embeddings.");
+  if (points.length === 0) {
+    console.warn("⚠️ No valid chunks to upsert.");
+    return;
   }
+
+  await qdrant.upsert(collectionName, { points });
+  console.log(`✅ Upserted ${points.length} chunks to ${collectionName}`);
 }
 
-// Delete all points for a project
+// 3. Delete by projectId
 export async function deleteProjectFromCollection(projectId: string) {
   try {
     await qdrant.delete(collection_name as string, {
@@ -103,12 +106,13 @@ export async function deleteProjectFromCollection(projectId: string) {
         ],
       },
     });
-    console.log(`🗑️ Deleted all points for projectId=${projectId}`);
+    console.log(`🗑️ Deleted all vectors for projectId: ${projectId}`);
   } catch (error) {
-    console.error("❌ Deletion failed for projectId=", projectId, error);
+    console.error(`❌ Error deleting project ${projectId}:`, error);
   }
 }
 
+// 4. Search by query vector (optionally filter by repo)
 export async function searchPointsInQdrant({
   collectionName,
   queryVector,

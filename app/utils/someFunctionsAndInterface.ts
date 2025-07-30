@@ -1,3 +1,5 @@
+
+
 const removeUnwanted = [
   "*.md",
   "*.db",
@@ -59,4 +61,40 @@ export interface ProjectData {
   createdAt: string;
 }
 
-export { removeUnwanted, isValidGitHubRepoUrl, formatDate };
+type SupportedLang =
+  | "cpp" | "go" | "java" | "js" | "php" | "proto"
+  | "python" | "rst" | "ruby" | "rust" | "scala"
+  | "swift" | "markdown" | "latex" | "html" | "sol";
+
+function detectLanguage(filePath: string): SupportedLang | "text" {
+  if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) return "js";
+  if (filePath.endsWith(".js") || filePath.endsWith(".jsx")) return "js";
+  if (filePath.endsWith(".py")) return "python";
+  if (filePath.endsWith(".go")) return "go";
+  if (filePath.endsWith(".java")) return "java";
+  if (filePath.endsWith(".cpp") || filePath.endsWith(".cc") || filePath.endsWith(".h")) return "cpp";
+  if (filePath.endsWith(".rs")) return "rust";
+  if (filePath.endsWith(".sol")) return "sol";
+  if (filePath.endsWith(".php")) return "php";
+  if (filePath.endsWith(".html")) return "html";
+  if (filePath.endsWith(".md")) return "markdown";
+  return "text";
+}
+
+function isSupportedLang(lang: string): lang is SupportedLang {
+  return [
+    "cpp", "go", "java", "js", "php", "proto", "python", "rst",
+    "ruby", "rust", "scala", "swift", "markdown", "latex", "html", "sol",
+  ].includes(lang);
+}
+
+function cleanCodeForEmbedding(code: string): string {
+  return code
+    .replace(/\\n/g, "\n")                      // Convert escaped newlines
+    .replace(/\\"/g, '"')                       // Convert escaped quotes
+    .replace(/[ \t]+\n/g, "\n")                 // Trim trailing spaces
+    .replace(/\n{3,}/g, "\n\n")                 // Collapse 3+ newlines to max 2
+    .trim();                                    // Final trim
+}
+
+export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding };

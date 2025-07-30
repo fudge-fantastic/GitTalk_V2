@@ -1,3 +1,7 @@
+## Some Awesome Stuff:
+- [ChunkViz v0.1](https://chunkviz.up.railway.app/)
+- [CodeSplitter](https://js.langchain.com/docs/how_to/code_splitter/)
+
 ## Pending UIs
 1. Busy indicators
 2. Optimistic UI 

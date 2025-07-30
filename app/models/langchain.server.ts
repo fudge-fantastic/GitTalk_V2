@@ -1,18 +1,25 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
 import { Document } from "@langchain/core/documents";
-// import fs from "fs/promises";
-import { ollamaEmbeddingsForSummary } from "./ollama.server";
-import { removeUnwanted } from "~/utils/someFunctionsAndInterface";
-import { getSafeSummary } from "./gemini.server";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import pLimit from "p-limit";
 
-// Langchain's + Github API
+import {
+  cleanCodeForEmbedding,
+  detectLanguage,
+  isSupportedLang,
+  removeUnwanted,
+} from "~/utils/someFunctionsAndInterface";
+import { ollamaEmbeddingsForSummary } from "./ollama.server";
+
 export async function loadGithubDocs(
   githubUrl: string,
-  userId?: string,
-  projectId?: string
+  userId: string = "test-user",
+  projectId: string = "test-project"
 ): Promise<Document[]> {
+  console.log(`🔗 Loading GitHub repo: ${githubUrl}`);
 
   const loader = new GithubRepoLoader(githubUrl, {
     branch: "main",
@@ -22,33 +29,52 @@ export async function loadGithubDocs(
     ignorePaths: removeUnwanted,
   });
 
-  console.log("Loading files from GitHub repository...");
   const rawDocs = await loader.load();
-  console.log(`Found ${rawDocs.length} documents. Starting processing...`);
+  console.log(`📄 Found ${rawDocs.length} files in ${githubUrl}`);
 
-  // Process every document, but the throttle ensures the API calls are spaced out
-  const finalDocuments = await Promise.all(
-    rawDocs.map(async (doc) => {
-      // Each of these calls will wait its turn in the throttle queue
-      const summary = await getSafeSummary(doc);
-      const embedding = await ollamaEmbeddingsForSummary(summary);
+  const limit = pLimit(5); // Control concurrency
+  const allChunks: Document[] = [];
 
-      return new Document({
-        pageContent: doc.pageContent,
-        metadata: {
-          source: doc.metadata.source,
-          userId: userId ?? "test-user",
-          projectId: projectId ?? "test-project",
-          repo: githubUrl,
-          summary,
-          embedding,
-        },
-      });
-    })
-  );
+  for (const doc of rawDocs) {
+    const filePath = doc.metadata.source ?? "";
+    const language = detectLanguage(filePath);
 
-  console.log("All documents processed successfully!");
-  return finalDocuments;
+    const splitter = RecursiveCharacterTextSplitter.fromLanguage(
+      isSupportedLang(language) ? language : "markdown",
+      {
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      }
+    );
+
+    const chunks = await splitter.splitDocuments([doc]);
+
+    const embeddedChunks = await Promise.all(
+      chunks.map((chunk) =>
+        limit(async () => {
+          const cleaned = cleanCodeForEmbedding(chunk.pageContent);
+          const embedding = await ollamaEmbeddingsForSummary(cleaned);
+
+          return new Document({
+            pageContent: chunk.pageContent,
+            metadata: {
+              source: filePath,
+              repo: githubUrl,
+              projectId,
+              userId,
+              language,
+              embedding,
+            },
+          });
+        })
+      )
+    );
+
+    allChunks.push(...embeddedChunks);
+  }
+
+  console.log(`✅ Embedded and prepared ${allChunks.length} chunks.`);
+  return allChunks;
 }
 
 // Made changes here, deal with Caching Strategy
