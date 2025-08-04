@@ -11,7 +11,10 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.0",
+    "@ai-sdk/rsc": "^1.0.1",
     "@custom-react-hooks/use-media-query": "^1.5.1",
+    "@google/genai": "^1.12.0",
     "@google/generative-ai": "^0.24.1",
     "@langchain/community": "^0.3.47",
     "@langchain/core": "^0.3.62",
@@ -34,6 +37,7 @@
     "@remix-run/node": "^2.16.5",
     "@remix-run/react": "^2.16.5",
     "@remix-run/serve": "^2.16.5",
+    "ai": "^5.0.1",
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
     "bcryptjs-react": "^2.4.6",

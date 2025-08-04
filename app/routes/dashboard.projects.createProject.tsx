@@ -3,7 +3,7 @@ import { Form, json, redirect, useActionData } from "@remix-run/react";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
-import { createCollection, upsertSummarizedDocsToQdrant } from "~/models/qdrant.server";
+import { createCollection, upsertChunksToQdrant } from "~/models/qdrant.server";
 import { loadGithubDocs } from "~/models/langchain.server";
 import { isValidGitHubRepoUrl } from "~/utils/someFunctionsAndInterface";
 
@@ -31,7 +31,7 @@ export async function action({ request }: { request: Request }) {
         const collection_name = process.env.COLLECTION_NAME || "";
         await createCollection(collection_name);
         const docs = await loadGithubDocs(githubUrl, userId, project.id);
-        await upsertSummarizedDocsToQdrant(docs, collection_name);
+        await upsertChunksToQdrant(docs, collection_name);
 
         return redirect(`/dashboard/projects/${project.id}`);
     } catch (error) {

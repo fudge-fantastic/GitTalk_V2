@@ -1,4 +1,4 @@
-
+import crypto from "crypto";
 
 const removeUnwanted = [
   "*.md",
@@ -97,4 +97,13 @@ function cleanCodeForEmbedding(code: string): string {
     .trim();                                    // Final trim
 }
 
-export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding };
+
+function generateStableId(source: string, content: string): string {
+  return crypto.createHash("sha256").update(source + content).digest("hex");
+}
+
+function truncateContext(input: string, maxChars = 15000): string {
+  return input.length > maxChars ? input.slice(0, maxChars) : input;
+}
+
+export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding, generateStableId, truncateContext };

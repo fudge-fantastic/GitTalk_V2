@@ -1,3 +1,4 @@
+// langchain.server.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,8 +12,11 @@ import {
   detectLanguage,
   isSupportedLang,
   removeUnwanted,
+  // truncateContext,
 } from "~/utils/someFunctionsAndInterface";
-import { ollamaEmbeddingsForSummary } from "./ollama.server";
+import { ollamaEmbedding } from "./ollama.server";
+import { ai } from "./gemini.server";
+import { searchPointsInQdrant } from "./qdrant.server";
 
 export async function loadGithubDocs(
   githubUrl: string,
@@ -42,7 +46,7 @@ export async function loadGithubDocs(
     const splitter = RecursiveCharacterTextSplitter.fromLanguage(
       isSupportedLang(language) ? language : "markdown",
       {
-        chunkSize: 1000,
+        chunkSize: 1200,
         chunkOverlap: 200,
       }
     );
@@ -53,7 +57,7 @@ export async function loadGithubDocs(
       chunks.map((chunk) =>
         limit(async () => {
           const cleaned = cleanCodeForEmbedding(chunk.pageContent);
-          const embedding = await ollamaEmbeddingsForSummary(cleaned);
+          const embedding = await ollamaEmbedding(cleaned);
 
           return new Document({
             pageContent: chunk.pageContent,
@@ -77,5 +81,66 @@ export async function loadGithubDocs(
   return allChunks;
 }
 
-// Made changes here, deal with Caching Strategy
-// Added a working dialogue
+export async function answerWithRAG({
+  userQuery,
+  repoUrl,
+  topK = 10,
+}: {
+  userQuery: string;
+  repoUrl: string;
+  topK?: number;
+}) {
+  if (!userQuery?.trim() || !repoUrl?.trim()) {
+    throw new Error("Missing or empty parameters: userQuery and repoUrl");
+  }
+
+  if (typeof topK !== "number" || topK <= 0) {
+    throw new Error("topK must be a positive number");
+  }
+
+  try {
+    const queryEmbedding = await ollamaEmbedding(userQuery);
+    const searchResults = await searchPointsInQdrant({
+      collectionName: process.env.COLLECTION_NAME!,
+      queryVector: queryEmbedding,
+      topK,
+      repoUrl,
+    });
+
+    const contextChunks = searchResults
+      .map((res) => res.payload?.pageContent)
+      .filter(Boolean)
+      .join("\n\n---\n\n");
+
+    console.log(contextChunks);
+    // const safeContext = truncateContext(contextChunks);
+    const finalPrompt = `
+      You are a senior software engineer tasked with answering questions based on a GitHub repository.
+      Use the provided CONTEXT to answer the QUESTION. Be accurate, technical, and reference code when necessary.
+      If the answer is not found in the context, reply clearly that it’s not available from the current codebase.
+      Avoid assumptions. Respond concisely but clearly.
+
+      ---
+
+      CONTEXT START:
+      ${contextChunks}
+      CONTEXT END
+
+      ---
+
+      QUESTION:
+      ${userQuery}`.trim();
+
+    const result = await ai.models.generateContentStream({
+      model: "gemini-2.0-flash",
+      contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+    });
+    for await (const chunk of result) {
+      console.log(chunk.text);
+    }
+    // return result.response.text?.() || "[No response from Gemini]";
+  } catch (err) {
+    console.error("❌ RAG flow failed", { userQuery, repoUrl, error: err });
+    throw new Error("RAG query failed");
+  }
+}

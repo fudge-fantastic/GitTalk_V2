@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // qdrant.server.ts
 // To run locally:
 // docker pull qdrant/qdrant
@@ -5,12 +6,15 @@
 // http://localhost:6333/dashboard
 // Try not to re-run the 'docker run' command, use 'docker start git-talk-container'
 
-import { QdrantClient } from "@qdrant/js-client-rest";
 import dotenv from "dotenv";
 dotenv.config();
+import { QdrantClient } from "@qdrant/js-client-rest";
 import { Document } from "@langchain/core/documents";
 
 export const collection_name = process.env.COLLECTION_NAME;
+if (!collection_name) {
+  throw new Error("❌ COLLECTION_NAME is missing in .env");
+}
 
 // Instantiating Vector-DB client (For cloud)
 export const qdrant_cloud = new QdrantClient({
@@ -65,6 +69,7 @@ export async function upsertChunksToQdrant(
       }
 
       return {
+        // Generating unique ID, find a fix for this
         id: crypto.randomUUID(),
         vector,
         payload: {
@@ -80,7 +85,6 @@ export async function upsertChunksToQdrant(
     .filter((point) => point !== null) as {
       id: string;
       vector: number[];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       payload: Record<string, any>;
     }[];
 
@@ -118,11 +122,13 @@ export async function searchPointsInQdrant({
   queryVector,
   topK = 10,
   repoUrl,
+  scoreThreshold = 0.5, 
 }: {
   collectionName: string;
   queryVector: number[];
   topK?: number;
   repoUrl?: string;
+  scoreThreshold?: number; // Add it to the type definition
 }) {
   const filter = repoUrl
     ? {
@@ -139,6 +145,7 @@ export async function searchPointsInQdrant({
     vector: queryVector,
     limit: topK,
     filter,
+    score_threshold: scoreThreshold,
   });
 
   return results;

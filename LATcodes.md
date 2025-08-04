@@ -52,3 +52,15 @@ export async function summarizeCommits(diffs: string): Promise<string> {
   }
 }
 ```
+
+```tsx
+const result = await gemini_model.generateContent({
+  contents: [
+    {
+      role: "user",
+      parts: [{ text: finalPrompt }],
+    },
+  ],
+});
+return result.response.text?.() || "[No response from Gemini]";
+```

@@ -23,17 +23,18 @@ export async function saveText() {
   }
 }
 
-export async function ollamaEmbeddingsForSummary(page_content: string) {
-  try {
-    const result = await ollama_embeddings.embedQuery(page_content);
-    console.log("Embeddings generated");
-    return result;
-  } catch (error) {
-    console.log(
-      "Error generating embeddings from ollamaEmbeddingsForSummary()",
-      error
-    );
-    // throw error;
-    return []
+export async function ollamaEmbedding(page_content: string): Promise<number[]> {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const result = await ollama_embeddings.embedQuery(page_content);
+      if (Array.isArray(result) && result.length > 0) {
+        console.log("✅ Embeddings generated");
+        return result;
+      }
+    } catch (error) {
+      console.warn(`⚠️ Embedding failed (Attempt ${attempt}):`, error);
+    }
+    await new Promise((res) => setTimeout(res, 200 * attempt)); // Exponential backoff
   }
+  throw new Error("❌ Failed to generate embedding after 3 retries");
 }
