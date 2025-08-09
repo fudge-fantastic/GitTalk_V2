@@ -15,7 +15,6 @@ import {
   // truncateContext,
 } from "~/utils/someFunctionsAndInterface";
 import { ollamaEmbedding } from "./ollama.server";
-import { ai } from "./gemini.server";
 import { searchPointsInQdrant } from "./qdrant.server";
 
 export async function loadGithubDocs(
@@ -81,7 +80,7 @@ export async function loadGithubDocs(
   return allChunks;
 }
 
-export async function answerWithRAG({
+export async function getUserQueryAndRelevantPoints({
   userQuery,
   repoUrl,
   topK = 10,
@@ -110,37 +109,14 @@ export async function answerWithRAG({
     const contextChunks = searchResults
       .map((res) => res.payload?.pageContent)
       .filter(Boolean)
-      .join("\n\n---\n\n");
+      .join("\n\n---\n\n").trim();
 
-    console.log(contextChunks);
-    // const safeContext = truncateContext(contextChunks);
-    const finalPrompt = `
-      You are a senior software engineer tasked with answering questions based on a GitHub repository.
-      Use the provided CONTEXT to answer the QUESTION. Be accurate, technical, and reference code when necessary.
-      If the answer is not found in the context, reply clearly that it’s not available from the current codebase.
-      Avoid assumptions. Respond concisely but clearly.
-
-      ---
-
-      CONTEXT START:
-      ${contextChunks}
-      CONTEXT END
-
-      ---
-
-      QUESTION:
-      ${userQuery}`.trim();
-
-    const result = await ai.models.generateContentStream({
-      model: "gemini-2.0-flash",
-      contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
-    });
-    for await (const chunk of result) {
-      console.log(chunk.text);
-    }
-    // return result.response.text?.() || "[No response from Gemini]";
+    // It's a string 
+    return contextChunks;
   } catch (err) {
-    console.error("❌ RAG flow failed", { userQuery, repoUrl, error: err });
+    console.error("❌ RAG query failed", { userQuery, repoUrl, error: err });
     throw new Error("RAG query failed");
   }
 }
+
+// Find rest of the code in LATcodes.md

@@ -1,3 +1,4 @@
+// someFunctionsAndInterface.ts
 import crypto from "crypto";
 
 const removeUnwanted = [
@@ -106,4 +107,25 @@ function truncateContext(input: string, maxChars = 15000): string {
   return input.length > maxChars ? input.slice(0, maxChars) : input;
 }
 
-export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding, generateStableId, truncateContext };
+function ragPrompt(contextChunks: string, userQuery: string) {
+  const finalPrompt = `
+      You are a senior software engineer tasked with answering questions based on a GitHub repository.
+      Use the provided CONTEXT to answer the QUESTION. Be accurate, technical, and reference code when necessary.
+      If the answer is not found in the context, reply clearly that it’s not available from the current codebase.
+      Avoid assumptions. Respond concisely but clearly.
+
+      ---
+
+      CONTEXT START:
+      ${contextChunks}
+      CONTEXT END
+
+      ---
+
+      QUESTION:
+      ${userQuery}`.trim();
+
+  return finalPrompt;
+}
+
+export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding, generateStableId, truncateContext, ragPrompt };

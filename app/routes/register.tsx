@@ -1,7 +1,7 @@
 import { json, redirect } from "@remix-run/node";
 import { createUser } from "~/models/user.server";
 import { Form, Link, useActionData } from "@remix-run/react";
-import { GalleryVerticalEnd } from "lucide-react";
+import { Logo } from "~/components/brand/logo";
 import ModeToggle from "~/components/darkModeToggle";
 import { cn } from "~/lib/utils";
 import { Label } from "~/components/ui/label";
@@ -35,34 +35,32 @@ export default function RegisterPage({ ...props }) {
 
     return (
         <>
-            <div className="grid min-h-svh lg:grid-cols-2 dark:bg-zinc-950">
-                <div className="flex flex-col gap-4 p-3.5 px-5">
+            <div className="relative min-h-svh lg:grid lg:grid-cols-2 dark:bg-zinc-950 bg-zinc-50">
+                <div className="flex flex-col gap-4 px-5 pt-4">
                     <div className="flex flex-row items-center justify-between">
-                        <Link to="/" className="font-semibold text-xl flex flex-row items-center gap-1.5"><GalleryVerticalEnd /> GitTalk</Link>
+                        <Logo size="sm" />
                         <ModeToggle />
                     </div>
-                    <div className="flex flex-1 items-center justify-center">
-                        <div className="w-full max-w-xs">
-                            <Form method="post" className={cn("flex flex-col gap-8")} {...props}>
+                    <div className="flex flex-1 items-center justify-center pb-10">
+                        <div className="w-full max-w-sm">
+                            <Form method="post" className={cn("flex flex-col gap-8 bg-white dark:bg-zinc-900 rounded-xl p-8 shadow-sm border border-zinc-200 dark:border-zinc-800")} {...props}>
                                 {/* Heading */}
-                                <div className="flex flex-col items-center gap-0 text-center">
-                                    <h1 className="text-[20px] font-bold">Sign up your account</h1>
-                                    <p className="text-xs text-muted-foreground">
-                                        Enter your email below to sign up
-                                    </p>
+                                <div className="flex flex-col items-center gap-1 text-center">
+                                    <h1 className="text-xl font-semibold tracking-tight">Create your account</h1>
+                                    <p className="text-xs text-muted-foreground">Start conversing with your repos</p>
                                 </div>
 
                                 {/* Error Message */}
                                 {actionData?.error && (
-                                    <p className="text-red-500 text-center">{actionData.error}</p>
+                                    <div className="rounded-md bg-red-500/10 text-red-600 dark:text-red-400 text-xs px-3 py-2 border border-red-500/30 text-center">{actionData.error}</div>
                                 )}
 
                                 {/* Form Fields */}
                                 <div className="grid gap-5">
 
                                     {/* Name Input */}
-                                    <div className="grid gap-0.5">
-                                        <Label htmlFor="name" className="text-[13px]">Full Name</Label>
+                                    <div className="grid gap-1">
+                                        <Label htmlFor="name" className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Full Name</Label>
                                         <Input
                                             id="name"
                                             name="username"
@@ -73,8 +71,8 @@ export default function RegisterPage({ ...props }) {
                                         />
                                     </div>
                                     {/* Email Input */}
-                                    <div className="grid gap-0.5">
-                                        <Label htmlFor="email" className="text-[13px]">Email</Label>
+                                    <div className="grid gap-1">
+                                        <Label htmlFor="email" className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Email</Label>
                                         <Input
                                             id="email"
                                             name="email"
@@ -86,9 +84,9 @@ export default function RegisterPage({ ...props }) {
                                     </div>
 
                                     {/* Password Input */}
-                                    <div className="grid gap-0.5">
+                                    <div className="grid gap-1">
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="password" className="text-[13px]">Password</Label>
+                                            <Label htmlFor="password" className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Password</Label>
                                         </div>
                                         <Input
                                             id="password"
@@ -101,30 +99,27 @@ export default function RegisterPage({ ...props }) {
                                     </div>
 
                                     {/* Submit Button */}
-                                    <Button type="submit" className="w-full">
-                                        SignUp
+                                    <Button type="submit" className="w-full h-9">
+                                        Sign Up
                                     </Button>
 
                                     {/* Divider */}
-                                    <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-                                        <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                                            Or continue with
+                                    <div className="relative text-center text-[11px] after:absolute after:inset-0 after:top-1/2 after:flex after:items-center after:border-t after:border-border">
+                                        <span className="relative z-10 bg-white dark:bg-zinc-900 px-2 text-muted-foreground">
+                                            Or
                                         </span>
                                     </div>
 
                                     {/* GitHub Login Button */}
-                                    <button className="text-sm w-full flex items-center gap-2 dark:bg-zinc-900 justify-center py-1.5 rounded-md shadow-lg dark:border-none border border-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                                        <FaGithubAlt className="h-5 w-5" />
-                                        SignUp with GitHub
+                                    <button className="text-xs w-full flex items-center gap-2 justify-center h-9 rounded-md border border-dashed border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 transition text-zinc-700 dark:text-zinc-300">
+                                        <FaGithubAlt className="h-4 w-4" />
+                                        Sign up with GitHub
                                     </button>
                                 </div>
 
                                 {/* Signup Link */}
-                                <div className="text-center text-sm">
-                                    Already have an account?{" "}
-                                    <Link to="/login" className="underline underline-offset-2">
-                                        Login
-                                    </Link>
+                                <div className="text-center text-[11px] text-muted-foreground">
+                                    Have an account? <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline">Sign in</Link>
                                 </div>
                             </Form>
                         </div>

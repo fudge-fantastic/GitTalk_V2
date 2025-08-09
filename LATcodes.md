@@ -64,3 +64,37 @@ const result = await gemini_model.generateContent({
 });
 return result.response.text?.() || "[No response from Gemini]";
 ```
+
+```tsx
+const contextChunks = searchResults
+  .map((res) => res.payload?.pageContent)
+  .filter(Boolean)
+  .join("\n\n---\n\n");
+
+const finalPrompt = `
+      You are a senior software engineer tasked with answering questions based on a GitHub repository.
+      Use the provided CONTEXT to answer the QUESTION. Be accurate, technical, and reference code when necessary.
+      If the answer is not found in the context, reply clearly that it’s not available from the current codebase.
+      Avoid assumptions. Respond concisely but clearly.
+
+      ---
+
+      CONTEXT START:
+      ${contextChunks}
+      CONTEXT END
+
+      ---
+
+      QUESTION:
+      ${userQuery}`.trim();
+
+const result = await ai.models.generateContentStream({
+  model: "gemini-2.0-flash",
+  contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+});
+for await (const chunk of result) {
+  console.log(chunk.text);
+}
+    // return result.response.text?.() || "[No response from Gemini]";
+
+```

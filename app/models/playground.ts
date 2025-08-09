@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+dotenv.config();
 import {
   createCollection,
   deleteProjectFromCollection,
@@ -6,9 +7,9 @@ import {
   collection_name,
   searchPointsInQdrant,
 } from "./qdrant.server";
-import { answerWithRAG, loadGithubDocs } from "./langchain.server";
+import { getUserQueryAndRelevantPoints, loadGithubDocs } from "./langchain.server";
 import { ollamaEmbedding } from "./ollama.server";
-dotenv.config();
+
 
 export async function run() {
   const projectId: string = "test-project";
@@ -46,7 +47,7 @@ export async function test2() {
 
 export async function test3() {
   try {
-    const result = await answerWithRAG({
+    const result = await getUserQueryAndRelevantPoints({
       userQuery:
         "Where is the post creation form? How can I access it? How can I improve it?",
       repoUrl: "https://github.com/fudge-fantastic/WordSmith",
@@ -61,5 +62,5 @@ export async function test3() {
 
 // test2().catch((err) => console.error("❌ Pipeline failed:", err));
 // run().catch((err) => console.error("❌ Pipeline failed:", err));
-test3().catch((err) => console.error("❌ Pipeline failed:", err));
+// test3().catch((err) => console.error("❌ Pipeline failed:", err));
 // Do not store chunk in Chunktype but smart chunking
