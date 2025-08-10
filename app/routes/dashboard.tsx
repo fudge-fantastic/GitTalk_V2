@@ -8,20 +8,20 @@ import { prisma } from "~/db.server";
 import { getProjectsForUser } from "~/models/project.server";
 import { requireUserSession } from "~/session.server";
 
-// Fetching entire User and Projects data
+// Fetch user info and all projects for sidebar and children
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await requireUserSession(request); 
-  const projects = await getProjectsForUser(session.userId); 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: {
-      username: true,
-      email: true,
-    },
-  });
-
+  const session = await requireUserSession(request);
+  const [user, projects] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.userId },
+      select: {
+        username: true,
+        email: true,
+      },
+    }),
+    getProjectsForUser(session.userId),
+  ]);
   if (!user) throw new Response("User not found", { status: 404 });
-  // console.log(user, projects);
   return json({ user, projects });
 }
 

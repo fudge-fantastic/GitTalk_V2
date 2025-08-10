@@ -1,5 +1,5 @@
 // dashboard.projects.$id.tsx
-import { useParams, useOutletContext, useLoaderData, Link, Form } from "@remix-run/react";
+import { useParams, useLoaderData, Link, Form } from "@remix-run/react";
 import { Textarea } from "~/components/ui/textarea";
 import { FaCodeCommit } from "react-icons/fa6";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -8,30 +8,32 @@ import { CommitResponse, pollCommits } from "~/models/github.server";
 import { FiExternalLink } from "react-icons/fi";
 import { useState } from "react"; import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "~/components/ui/dialog"
 import { SingleProjectData } from "~/utils/someFunctionsAndInterface";
+import { getProjectsForUser } from "~/models/project.server";
+import { requireUserSession } from "~/session.server";
+import { prisma } from "~/db.server";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
+    const session = await requireUserSession(request);
     const projectId = params.id;
     if (!projectId) throw new Response("Project ID required", { status: 400 });
 
-    // Poll commits from GitHub and save new ones to DB
-    const commits = await pollCommits(projectId);
+    // Fetch project details and commits in parallel
+    const [project, commits] = await Promise.all([
+        prisma.project.findUnique({
+            where: { id: projectId, userId: session.userId },
+        }),
+        pollCommits(projectId),
+    ]);
 
-    // If pollCommits returns undefined on error, fallback to empty array
-    return json({ commits: commits ?? [] });
+    if (!project) throw new Response("Project not found", { status: 404 });
+
+    return json({ project, commits: commits ?? [] });
 }
 
 export default function ProjectDetailsRoute() {
-    const { id } = useParams();
-    const { projects } = useOutletContext<{ projects: SingleProjectData[] }>();
-    const { commits } = useLoaderData<{ commits: CommitResponse[] }>();
-    // console.log(commits);
-
-    const project = projects.find((p) => p.id === id);
-
+    const { project, commits } = useLoaderData<{ project: SingleProjectData, commits: CommitResponse[] }>();
     const [question, setQuestion] = useState("");
     const [open, setOpen] = useState(false);
-
-    if (!project) { return <p className="text-red-500 text-center text-lg">Project not found.</p>; }
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -69,7 +71,7 @@ export default function ProjectDetailsRoute() {
                 <div className="py-3 pl-4 dark:bg-zinc-900 bg-zinc-100 rounded-md shadow-sm shadow-zinc-400 dark:shadow-none md:w-[40%]">
                     <h1 className="text-lg font-semibold mb-1">{project.projectName}</h1>
                     <ScrollArea className="font-medium text-muted-foreground text-sm h-44 overflow-auto pr-4 text-justify">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ex rerum repellat labore. Ipsa blanditiis adipisci, autem porro, at dolorum saepe animi iusto ratione molestiae et tempore? Ullam, animi consectetur! Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae similique, architecto nobis eaque officia iusto eos possimus deserunt
+                        {project.description || "No description provided."}
                     </ScrollArea>
                 </div>
             </div>

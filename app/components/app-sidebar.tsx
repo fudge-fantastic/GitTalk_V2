@@ -26,7 +26,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar"
-import { GalleryVerticalEnd } from "lucide-react"; // legacy import (can remove if unused after refactor)
 import { Logo } from "~/components/brand/logo";
 import { FaPlus, FaRegFolder } from "react-icons/fa6";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";

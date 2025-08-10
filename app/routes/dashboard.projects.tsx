@@ -1,16 +1,12 @@
 // dashboard.projects.tsx: layout
-import { Outlet, useOutletContext } from "@remix-run/react";
-import { ProjectData } from "~/utils/someFunctionsAndInterface";
 
-interface LoaderData {
-  projects: ProjectData[];
-}
+import { Outlet, useOutletContext } from "@remix-run/react";
 
 export default function ProjectsLayout() {
-  const {projects}  = useOutletContext<LoaderData>();
+  const { projects } = useOutletContext<{ projects: any[] }>();
   return (
     <div className="mx-1">
-      <Outlet context={{projects}}/>
+      <Outlet context={{ projects }} />
     </div>
   );
 }
