@@ -1,5 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { getSession } from "~/session.server";
 import NavBar from "./navbar";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { FeatureCard } from "~/components/landing/feature-card";
@@ -17,24 +19,32 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
+  if (session.has("userId")) {
+    return redirect("/dashboard");
+  }
+  return null;
+}
+
 export default function Index() {
   return (
     <div className="relative min-h-screen flex flex-col dark:bg-zinc-950 bg-gradient-to-br from-zinc-50 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-70 dark:opacity-60 bg-[radial-gradient(circle_at_20%_25%,rgba(99,102,241,0.25),transparent_55%),radial-gradient(circle_at_80%_60%,rgba(6,182,212,0.25),transparent_55%),radial-gradient(circle_at_50%_100%,rgba(236,72,153,0.18),transparent_65%)]" />
+  <div className="pointer-events-none absolute inset-0 -z-10 opacity-70 dark:opacity-60 bg-[radial-gradient(circle_at_20%_25%,rgba(16,185,129,0.25),transparent_55%),radial-gradient(circle_at_80%_60%,rgba(45,212,191,0.25),transparent_55%),radial-gradient(circle_at_50%_100%,rgba(59,130,246,0.18),transparent_65%)]" />
       <NavBar />
       {/* Hero */}
       <section className="relative px-6 md:px-10 pt-36 md:pt-40 pb-16">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-14 items-center">
           <div>
             <h1 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05] mb-6">
-              Chat with your <span className="relative inline-block"><span className="bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400 bg-clip-text text-transparent">Codebase</span></span>
+              Chat with your <span className="relative inline-block"><span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 bg-clip-text text-transparent">Codebase</span></span>
             </h1>
             <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-300 max-w-xl leading-relaxed mb-8">
               GitTalk lets you interrogate repositories, surface the right files instantly, and generate insights using modern LLMs (Gemini, OpenAI, Ollama). Vector search, smart chunking & caching keep everything fast and affordable.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="shadow-lg shadow-indigo-500/20">
-                <Link to="/dashboard" className="">Get Started <FaArrowRightLong className="ml-1" /></Link>
+              <Button asChild size="lg">
+                <Link to="/login" className="">Get Started <FaArrowRightLong className="ml-1" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to="/register">Create Free Account</Link>
@@ -49,7 +59,7 @@ export default function Index() {
             </div>
           </div>
           <div className="relative">
-            <div className="absolute -inset-6 bg-gradient-to-tr from-indigo-500/20 via-fuchsia-400/10 to-cyan-400/20 blur-2xl rounded-3xl -z-10" />
+            <div className="absolute -inset-6 bg-gradient-to-tr from-emerald-500/20 via-teal-400/10 to-cyan-400/20 blur-2xl rounded-3xl -z-10" />
             <CodeWindow />
           </div>
         </div>
@@ -101,7 +111,7 @@ export default function Index() {
             <p className="text-zinc-600 dark:text-zinc-300 mb-8 max-w-2xl mx-auto">Spin up a project and start asking questions in under a minute. Your code deserves conversational understanding.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="shadow-md">
-                <Link to="/dashboard">Launch Dashboard</Link>
+                <Link to="/login">Launch Dashboard</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link to="/register">Create Free Account</Link>

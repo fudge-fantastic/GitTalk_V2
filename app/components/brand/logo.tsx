@@ -37,7 +37,7 @@ export function Logo({ className, size = "sm", withText = true, to = "/" }: Logo
 			to={to}
 			prefetch="intent"
 			aria-label="GitTalk Home"
-			className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 rounded-md"
+			className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 rounded-md"
 		>
 			{content}
 		</Link>

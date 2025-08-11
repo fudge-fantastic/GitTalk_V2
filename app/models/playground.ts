@@ -12,7 +12,7 @@ import { ollamaEmbedding } from "./ollama.server";
 
 
 export async function run() {
-  const projectId: string = "test-project";
+  const projectId: string = "f573d875-d4fd-45c2-bcbe-a7a87a43033a";
   await deleteProjectFromCollection(projectId);
   console.log(`🗑️ Deleted all points for projectId=${projectId}`);
 }
@@ -61,6 +61,6 @@ export async function test3() {
 }
 
 // test2().catch((err) => console.error("❌ Pipeline failed:", err));
-// run().catch((err) => console.error("❌ Pipeline failed:", err));
+run().catch((err) => console.error("❌ Pipeline failed:", err));
 // test3().catch((err) => console.error("❌ Pipeline failed:", err));
 // Do not store chunk in Chunktype but smart chunking

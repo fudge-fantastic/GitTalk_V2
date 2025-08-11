@@ -4,17 +4,17 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://postgres@localhost:5433/postgres"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  username  String   @db.VarChar(30)
-  email     String   @unique @db.VarChar(100)
-  password  String   @db.VarChar(100)
+  username  String
+  email     String   @unique
+  password  String
   credits   Int      @default(100)
 
   // Relations
@@ -22,12 +22,12 @@ model User {
 }
 
 model Project {
-  id           String   @id @default(uuid())
+  id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  projectName  String   @db.VarChar(100) // Moved here for user-defined naming
-  githubUrl    String   @db.VarChar(200)
-  description  String?  @db.VarChar(500)
+  projectName  String // Moved here for user-defined naming
+  githubUrl    String
+  description  String?
   userId       String
 
   // Relations
@@ -37,7 +37,7 @@ model Project {
 }
 
 model RepoCommit {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   commitHash      String
   commitMessage   String
   commitUrl       String
@@ -49,10 +49,14 @@ model RepoCommit {
   projectId       String
   project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   @@index([commitHash])
+  // Ensure we don't store duplicate commits per project
+  @@unique([projectId, commitHash])
+  // Optimize pagination by project/time
+  @@index([projectId, committedAt])
 }
 
 model SummarizedDocument {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
   repoUrl     String
   filePath    String
   contentHash String   @unique
