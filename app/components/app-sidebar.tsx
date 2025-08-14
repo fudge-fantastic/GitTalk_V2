@@ -1,4 +1,5 @@
-import { Form, Link, useLoaderData, useMatches } from "@remix-run/react"
+import { Form, Link, useLoaderData, useMatches, Await } from "@remix-run/react"
+import { Suspense } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { PiProjectorScreen } from "react-icons/pi";
 // import { FiCreditCard } from "react-icons/fi";
@@ -59,7 +60,10 @@ type LoaderData = {
     username: string;
     email: string;
   };
-  projects: {
+  projects: Promise<{
+    id: string;
+    projectName: string;
+  }[]> | {
     id: string;
     projectName: string;
   }[];
@@ -68,23 +72,37 @@ type LoaderData = {
 export function AppSidebar() {
   const { user, projects } = useLoaderData<LoaderData>();
   const matches = useMatches();
-
-  // The route ID corresponds to the file path: app/routes/dashboard.projects.$id.tsx
-  const isProjectDetailPage = matches.some(
-    (match) => match.id === "routes/dashboard.projects.$id"
-  );
-
   return (
     <Sidebar className="border-none">
       <SideBarHeaderComponent />
       <SidebarContent>
         <SideBarGroup1Component />
-        {/* Conditionally render SideBarGroup2Component only on project detail pages */}
-        {isProjectDetailPage && <SideBarGroup2Component projects={projects} />}
+        <Suspense fallback={<ProjectsSkeleton />}> 
+          <Await resolve={projects} errorElement={<div className="px-3 py-2 text-xs text-red-500">Failed to load projects</div>}>
+            {(resolved: { id: string; projectName: string }[]) => (
+              <SideBarGroup2Component projects={resolved} />
+            )}
+          </Await>
+        </Suspense>
       </SidebarContent>
       <SideBarFooterComponent user={user} />
     </Sidebar>
   )
+}
+
+function ProjectsSkeleton() {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel className="text-muted-foreground font-semibold">Your Projects</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <div className="space-y-2 px-2 py-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-7 rounded-md bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+          ))}
+        </div>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
 }
 
 function SideBarHeaderComponent() {
@@ -120,16 +138,16 @@ function SideBarGroup1Component() {
 function SideBarGroup2Component({ projects }: { projects: { id: string; projectName: string }[] }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-muted-foreground font-semibold">Your chats</SidebarGroupLabel>
-      <SidebarGroupAction title="Add new chat">
+      <SidebarGroupLabel className="text-muted-foreground font-semibold">Your Projects</SidebarGroupLabel>
+      <SidebarGroupAction title="Add new project">
         <Link to="/dashboard/projects/createProject">
-          <FaPlus /> <span className="sr-only">Add New Chat</span>
+          <FaPlus /> <span className="sr-only">Add New Project</span>
         </Link>
       </SidebarGroupAction>
       <SidebarGroupContent>
         {projects.length === 0 ? (
           <div className="flex items-center justify-center mt-2">
-            <span className="text-sm font-medium text-muted-foreground">No chats</span>
+            <span className="text-sm font-medium text-muted-foreground">No projects</span>
           </div>
         ) : (
           <SidebarMenu>

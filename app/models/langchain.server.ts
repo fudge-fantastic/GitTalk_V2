@@ -11,11 +11,11 @@ import {
   cleanCodeForEmbedding,
   detectLanguage,
   isSupportedLang,
-  removeUnwanted,
   // truncateContext,
-} from "~/utils/someFunctionsAndInterface";
+} from "~/utils/someFunctions";
 import { ollamaEmbedding } from "./ollama.server";
 import { searchPointsInQdrant } from "./qdrant.server";
+import { removeUnwanted } from "~/utils/someVariables";
 
 export async function loadGithubDocs(
   githubUrl: string,

@@ -1,11 +1,12 @@
 // dashboard.projects.new.tsx
-import { Form, json, redirect, useActionData } from "@remix-run/react";
+import { Form, useActionData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
 import { getSession } from "~/session.server";
 import { createCollection, upsertChunksToQdrant } from "~/models/qdrant.server";
 import { loadGithubDocs } from "~/models/langchain.server";
-import { isValidGitHubRepoUrl } from "~/utils/someFunctionsAndInterface";
+import { isValidGitHubRepoUrl } from "~/utils/someFunctions";
 
 export async function action({ request }: { request: Request }) {
     const body = await request.formData();

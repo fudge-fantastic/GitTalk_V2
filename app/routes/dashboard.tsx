@@ -1,5 +1,5 @@
 // dashboard.tsx: layout 
-import { json, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { json, LoaderFunctionArgs, redirect, defer } from "@remix-run/node";
 import { Outlet, useLoaderData } from "@remix-run/react";
 import { AppSidebar } from "~/components/app-sidebar";
 import NavBar from "~/components/navbar";
@@ -11,16 +11,11 @@ import { requireUserSession, getSession, destroySession } from "~/session.server
 // Fetch user info and all projects for sidebar and children
 export async function loader({ request }: LoaderFunctionArgs) {
   const session = await requireUserSession(request);
-  const [user, projects] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.userId },
-      select: {
-        username: true,
-        email: true,
-      },
-    }),
-    getProjectsForUser(session.userId),
-  ]);
+  // Fetch user now (small) and stream projects progressively
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { username: true, email: true },
+  });
   // If the user record no longer exists (e.g. database reset after migration),
   // clear the stale session cookie and send them to login instead of 404.
   if (!user) {
@@ -31,7 +26,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
     });
   }
-  return json({ user, projects });
+  const projectsPromise = getProjectsForUser(session.userId);
+  return defer({ user, projects: projectsPromise });
 }
 
 export default function DashboardLayout() {

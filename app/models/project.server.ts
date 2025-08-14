@@ -23,7 +23,7 @@ export async function getProjectsForUser(userId: string) {
   return prisma.project.findMany({
     where: { userId },
   orderBy: { createdAt: "desc" },
-  select: { id: true, projectName: true, githubUrl: true, createdAt: true },
+  select: { id: true, projectName: true, githubUrl: true, createdAt: true, description: true },
   });
 }
 

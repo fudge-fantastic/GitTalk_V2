@@ -3,15 +3,8 @@
 - [ChunkViz v0.1](https://chunkviz.up.railway.app/)
 - [CodeSplitter](https://js.langchain.com/docs/how_to/code_splitter/)
 
-## Pending UIs
-
-1. Busy indicators
-2. Optimistic UI
-3. Skeleton fallbacks
-
 ## Route Configuration
-
-1. [Nested Routes (segmenting routes)](https://remix.run/docs/en/main/discussion/routes#what-is-nested-routing)
+- [Nested Routes (segmenting routes)](https://remix.run/docs/en/main/discussion/routes#what-is-nested-routing)
 
 ## [Prisma ORM](https://www.prisma.io/docs/getting-started/quickstart-sqlite) - [Getting Started](https://www.prisma.io/docs/getting-started)
 
@@ -99,15 +92,7 @@ async function reIngestProject(
 - [Qdrant JS](https://github.com/qdrant/qdrant-js)
 - [Weaviate](https://weaviate.io/developers/weaviate/quickstart)
 
-## Application Layout
-
-- **dashboard.tsx**: Loading user and projects using loader function. In loader, checking if the user is authenticated. If not, redirect to login page. If yes, load user and projects. This is where our dashboard layout is defined (Sidebar) and using Outlet to pass the data to child routes
-- **dashboard.projects.tsx**: Fetching data from the parent route (dashboard.tsx) using outletContext. This is where our projects layout is defined
-- **dashboard.projects.index.tsx**: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a list of projects.
-- **dashboard.projects.$id.tsx**: Fetching data from the parent route (dashboard.projects.tsx) using outletContext. We're displaying a single project.
-
 ## Issues
-
 #### Credentials are not being loaded from the .env file.
 
 ```shell
@@ -130,17 +115,7 @@ Prisma schema loaded from prisma\schema.prisma
 Error:
 EPERM: operation not permitted, rename 'D:\CODING\Remix\GitTalk_V2\generated\prisma\query_engine-windows.dll.node.tmp20224' -> 'D:\CODING\Remix\GitTalk_V2\generated\prisma\query_engine-windows.dll.node'
 ```
-
 Solution: 'rm -rf generated/prisma' and then 'npx prisma generate'
-
-## Know the code
-
-- summarizeCommits(diffs: string): summarizing commits - Completely irrelevant
-
-- summarizeCode(doc: Document): Takes a document and summarizing SINGLE document
-- generateEmbeddingsForSummary(summary: string): Takes a summary and generating embeddings for a summary
-- loadGithubRepo(githubUrl: string,userId?: string,projectId?: string,githubToken?: string): Loading a Github repo into LangChainJS. Spits out an array of documents.
-- generateEmbeddings(docs: Document[]): Generating embeddings for an array of summarized documents
 
 ## Local Setup for Qdrant or any VectorDB
 1. Ensure to install dependencies and run the Docker container
@@ -156,5 +131,199 @@ http://localhost:6333/dashboard
 - [Chatbot](https://js.langchain.com/docs/tutorials/chatbot/)
 - [Memory Chat](https://js.langchain.com/docs/tutorials/chatbot/#managing-conversation-history)
 
-## Change of plans
-Create a chat section where they could legit talk and save response, instead of manually saving the response.
+Here’s your checklist and findings formatted in clean Markdown:
+
+---
+
+# Project Audit Report - August
+
+## **Checklist**
+
+* Identify correctness issues (bad imports, type/runtime pitfalls)
+* Security and secrets handling
+* Build/deploy configuration risks (Prisma, generated assets, envs)
+* Data and persistence concerns (SQLite/Prisma usage, migrations)
+* UX/performance concerns (streaming, background jobs, loaders)
+* Propose specific fixes and quick wins
+
+---
+
+## **Actions Taken**
+
+* **Scanned**: key server, routes, models, config files, and Prisma schema for issues.
+* **Fixed**:
+
+  1. Corrected `json`/`redirect` imports to come from `@remix-run/node` in `login.tsx` and `dashboard.projects.createProject.tsx`.
+  2. Removed plaintext password logging in `register.tsx`.
+  3. Verified no new type/lint errors for edited files.
+
+---
+
+## **Notable Flaws & Fixes**
+
+### **1. Prisma Client Output and Generated Artifacts**
+
+* **Problem**:
+
+  * Prisma client imported from `generated/prisma/client` with generated output committed in repo.
+  * Platform-specific engines cause brittleness.
+  * `.gitignore` ignores `generated/` but files still tracked — builds may fail on fresh clone.
+* **Fix**:
+
+  * Switch back to `@prisma/client` default output.
+  * Or keep custom path but add `postinstall: prisma generate` in `package.json`.
+  * Remove generated binaries from Git.
+
+---
+
+### **2. SQLite PRAGMA Always Runs**
+
+* **Problem**:
+
+  * `isSQLite` is hard-coded to `true` in `db.server.ts`.
+  * PRAGMAs run even if moving to Postgres/MySQL.
+* **Fix**:
+
+  * Detect SQLite dynamically:
+
+    ```ts
+    const isSQLite = process.env.DATABASE_URL?.startsWith("file:");
+    ```
+  * Only run PRAGMAs when `isSQLite` is true.
+
+---
+
+### **3. Session Cookie Configuration Not Production-Safe**
+
+* **Problem**:
+
+  * `domain: "localhost"` will break in production.
+  * Default `SESSION_SECRET` fallback is insecure.
+* **Fix**:
+
+  * Use `process.env.COOKIE_DOMAIN` in production; omit locally.
+  * Throw if `SESSION_SECRET` missing in production.
+
+---
+
+### **4. Qdrant Client & Env Handling**
+
+* **Problems**:
+
+  * `COLLECTION_NAME` check conflicts between server and route usage.
+  * Cloud/local clients always constructed on module load.
+* **Fix**:
+
+  * Export a single validated `COLLECTION_NAME` constant from Qdrant server.
+  * Conditionally create clients only if required env vars are present.
+
+---
+
+### **5. Background “Warmup” Fetch**
+
+* **Problem**:
+
+  * `await fetch("http://localhost", { method: "HEAD" })` in background task — fails in production.
+* **Fix**:
+
+  * Remove warmup fetch entirely.
+
+---
+
+### **6. GitHub Loader Hard-Coded to "main"**
+
+* **Problem**:
+
+  * Loader will miss repos with default branch `master` or custom names.
+* **Fix**:
+
+  * Detect default branch via GitHub API or accept branch as parameter.
+
+---
+
+### **7. Sensitive Data Logging**
+
+* **Problem**:
+
+  * Logged `{ email, password, username }` in `register.tsx`.
+* **Fix**:
+
+  * **Already removed**. Never log credentials.
+
+---
+
+### **8. Generated Artifacts & DB Files in Repo**
+
+* **Problem**:
+
+  * Build output, `generated/`, and `prisma/dev.db*` committed.
+  * Causes noise and cross-platform issues.
+* **Fix**:
+
+  * Remove from history and enforce `.gitignore`.
+  * Use migrations or seed scripts instead of shipping DB file.
+
+---
+
+### **9. Node Crypto in Shared Utils**
+
+* **Problem**:
+
+  * `crypto` imported in a file that may run in the browser.
+* **Fix**:
+
+  * Move crypto functions to `.server.ts` or conditionally import server-side only.
+
+---
+
+### **10. Octokit Auth/Env Resilience**
+
+* **Problem**:
+
+  * Missing `GITHUB_ACCESS_TOKEN` causes unauthenticated requests and rate limits.
+* **Fix**:
+
+  * Throw/warn at startup if missing in production.
+
+---
+
+### **11. Minor Hygiene**
+
+* `dashboard.tsx`: unused `json` import.
+* `AppSidebar`: unused `useMatches()` import.
+* `bcryptjs-react` unused dependency — remove.
+* `qdrant_data;C` path accidental — ignore/remove.
+
+---
+
+## **Security Notes**
+
+* Replace default session secret in production.
+* Never log tokens or passwords.
+* Validate repository URLs and rate-limit ingestion to avoid abuse.
+
+---
+
+## **Performance & UX**
+
+* Good: Remix `defer` + `Suspense` for progressive rendering.
+* Suggestion: Queue background embeddings with a job queue if volume grows.
+
+---
+
+## **Recommended Next Steps**
+
+1. Switch Prisma back to `@prisma/client` or add `postinstall` generate step.
+2. Centralize env validation and fail fast in production.
+3. Fix SQLite detection in `db.server.ts`.
+4. Remove tracked artifacts from Git.
+5. Remove warmup fetch & branch hardcode.
+
+---
+
+## **Quality Gates**
+
+* **Typecheck**: ✅ PASS (edited files)
+* **Lint**: ⚠ Not run; recommend after cleanup.
+* **Build**: Not tested post-change; verify after Prisma config update.
+* **Unit Tests**: None present; consider adding minimal server tests.

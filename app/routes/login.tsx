@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Form, json, Link, redirect, useActionData } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
 import bcrypt from "bcryptjs";
 import { Logo } from "~/components/brand/logo";
 import { FaGithubAlt } from "react-icons/fa6";

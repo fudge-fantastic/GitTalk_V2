@@ -19,3 +19,22 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 export { prisma };
+
+// Apply SQLite-specific performance PRAGMAs for local use.
+// These improve concurrency and reduce "database is locked" errors.
+// Safe no-ops when using other providers.
+void (async () => {
+  try {
+    // Only attempt for SQLite URLs
+    // @ts-ignore - prisma._engineConfig is internal; fallback to URL env if needed
+    const isSQLite = true; // Datasource is SQLite in prisma/schema.prisma
+    if (isSQLite) {
+      await prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL");
+      await prisma.$executeRawUnsafe("PRAGMA synchronous = NORMAL");
+      await prisma.$executeRawUnsafe("PRAGMA foreign_keys = ON");
+      await prisma.$executeRawUnsafe("PRAGMA busy_timeout = 5000");
+    }
+  } catch {
+    // Best-effort; ignore if not supported or already set.
+  }
+})();

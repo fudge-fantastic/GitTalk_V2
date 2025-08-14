@@ -11,7 +11,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { ActionFunction, redirect } from "@remix-run/node";
 import { prisma } from "~/db.server";
 import { deleteProjectFromCollection } from "~/models/qdrant.server";
-import { formatDate, ProjectData } from "~/utils/someFunctionsAndInterface";
+import { formatDate, ProjectData } from "~/utils/someFunctions";
 
 
 

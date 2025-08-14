@@ -1,44 +1,18 @@
 // someFunctionsAndInterface.ts
 import crypto from "crypto";
 
-const removeUnwanted = [
-  "*.md",
-  "*.db",
-  "*.json",
-  "*.yaml",
-  "*.yml",
-  "*.txt",
-  "*.log",
-  "*.lock",
-  "*.mdx",
-  "*.cjs",
-  "LICENCE",
-  "LICENSE",
-  ".gitignore",
-  ".gitattributes",
-  ".editorconfig",
-  ".DS_Store",
-  "node_modules/",
-  "generated/",
-  "dist/",
-  "build/",
-  "out/",
-  "tmp/",
-  "temp/",
-  "coverage/",
-  ".ipynb_checkpoints/",
-  "*.test.ts",
-  "*.spec.ts",
-  "*.test.js",
-  "*.spec.js",
-];
-
-function isValidGitHubRepoUrl(url: string): boolean {
+export function isValidGitHubRepoUrl(url: string): boolean {
     const regex = /^https:\/\/github\.com\/[\w-]+\/[\w.-]+\/?$/i;
     return regex.test(url.trim());
 }
 
-function formatDate(dateString: string) {
+// Splits a GitHub URL into its owner and repo parts
+export function extractOwnerRepo(url: string) {
+  const parts = url.split("/");
+  return { owner: parts[3], repo: parts[4] };
+}
+
+export function formatDate(dateString: string) {
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
@@ -46,28 +20,12 @@ function formatDate(dateString: string) {
   }).format(new Date(dateString));
 }
 
-export interface SingleProjectData {
-    id: string;
-    projectName: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    githubUrl: string;
-}
-
-export interface ProjectData {
-  id: string;
-  projectName: string;
-  description: string;
-  createdAt: string;
-}
-
 type SupportedLang =
   | "cpp" | "go" | "java" | "js" | "php" | "proto"
   | "python" | "rst" | "ruby" | "rust" | "scala"
   | "swift" | "markdown" | "latex" | "html" | "sol";
 
-function detectLanguage(filePath: string): SupportedLang | "text" {
+export function detectLanguage(filePath: string): SupportedLang | "text" {
   if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) return "js";
   if (filePath.endsWith(".js") || filePath.endsWith(".jsx")) return "js";
   if (filePath.endsWith(".py")) return "python";
@@ -82,14 +40,14 @@ function detectLanguage(filePath: string): SupportedLang | "text" {
   return "text";
 }
 
-function isSupportedLang(lang: string): lang is SupportedLang {
+export function isSupportedLang(lang: string): lang is SupportedLang {
   return [
     "cpp", "go", "java", "js", "php", "proto", "python", "rst",
     "ruby", "rust", "scala", "swift", "markdown", "latex", "html", "sol",
   ].includes(lang);
 }
 
-function cleanCodeForEmbedding(code: string): string {
+export function cleanCodeForEmbedding(code: string): string {
   return code
     .replace(/\\n/g, "\n")                      // Convert escaped newlines
     .replace(/\\"/g, '"')                       // Convert escaped quotes
@@ -99,15 +57,15 @@ function cleanCodeForEmbedding(code: string): string {
 }
 
 
-function generateStableId(source: string, content: string): string {
+export function generateStableId(source: string, content: string): string {
   return crypto.createHash("sha256").update(source + content).digest("hex");
 }
 
-function truncateContext(input: string, maxChars = 15000): string {
+export function truncateContext(input: string, maxChars = 15000): string {
   return input.length > maxChars ? input.slice(0, maxChars) : input;
 }
 
-function ragPrompt(contextChunks: string, userQuery: string) {
+export function ragPrompt(contextChunks: string, userQuery: string) {
   const finalPrompt = `
       You are a senior software engineer tasked with answering questions based on a GitHub repository.
       Use the provided CONTEXT to answer the QUESTION. Be accurate, technical, and reference code when necessary.
@@ -127,5 +85,3 @@ function ragPrompt(contextChunks: string, userQuery: string) {
 
   return finalPrompt;
 }
-
-export { removeUnwanted, isValidGitHubRepoUrl, formatDate, detectLanguage, isSupportedLang, cleanCodeForEmbedding, generateStableId, truncateContext, ragPrompt };

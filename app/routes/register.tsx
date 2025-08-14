@@ -21,7 +21,6 @@ export const action = async ({ request }: { request: Request }) => {
 
     try {
         await createUser({ email, password, username });
-        console.log("User created", { email, password, username });
         // Returning to the Login Page to ensure if the account is created
         return redirect("/login");
     } catch (error) {
