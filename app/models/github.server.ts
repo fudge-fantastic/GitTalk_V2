@@ -10,31 +10,17 @@ export const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
 const DEFAULT_HUMAN_AVATAR = "https://avatars.githubusercontent.com/u/583231?v=4";
 const DEFAULT_BOT_AVATAR = "https://github.githubassets.com/images/modules/logos/github-mark.png";
-const MAX_COMMITS_TO_STORE = 100;
+export const MAX_COMMITS_TO_STORE = 100;
 const COMMITS_PAGE_SIZE = 25;
 
-// Simple in-memory per-project lock to avoid duplicate concurrent refreshes
-const projectLocks = new Map<string, Promise<unknown>>();
-function withProjectLock<T>(projectId: string, fn: () => Promise<T>): Promise<T> {
-  const running = projectLocks.get(projectId) ?? Promise.resolve();
-  const next = running
-    .catch(() => undefined) // ignore previous errors
-    .then(fn) as Promise<T>;
-  projectLocks.set(projectId, next.finally(() => {
-    // Only clear if this is the last promise stored
-    if (projectLocks.get(projectId) === next) projectLocks.delete(projectId);
-  }));
-  return next;
-}
-
-// Fetching GitHub URL FROM the DB
+// Fetching GitHub URL FROM the DB via Project -> Repo
 export async function getGithubUrl(projectId: string): Promise<string | null> {
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { githubUrl: true },
+      select: { repo: { select: { githubUrl: true } } },
     });
-    return project?.githubUrl || null;
+    return project?.repo?.githubUrl || null;
   } catch (error) {
     console.error("❌ Error fetching GitHub URL:", error);
     return null;
@@ -42,7 +28,7 @@ export async function getGithubUrl(projectId: string): Promise<string | null> {
 }
 
 // Fetching commits from GitHub Repository using Octokit, not from DB
-export async function fetchCommitsFromGitHub(githubUrl: string, limit = MAX_COMMITS_TO_STORE): Promise<CommitResponse[]> {
+export async function fetchCommitsFromGitHubUsingOctokit(githubUrl: string, limit = MAX_COMMITS_TO_STORE): Promise<CommitResponse[]> {
   // Validate and extract owner/repo
   const { owner, repo } = extractOwnerRepo(githubUrl) || {};
   if (!owner || !repo) {
@@ -92,74 +78,23 @@ export async function fetchCommitsFromGitHub(githubUrl: string, limit = MAX_COMM
   }
 }
 
-export async function saveCommitsToDB(projectId: string, commits: CommitResponse[]) {
-  if (commits.length === 0) return;
-  try {
-    // Prefetch existing commit hashes to avoid unique constraint errors on SQLite (no skipDuplicates)
-    const existing = await prisma.repoCommit.findMany({
-      where: { projectId },
-      select: { commitHash: true },
-    });
-    const existingSet = new Set(existing.map(e => e.commitHash));
-    const toInsert = commits
-      .filter(c => c.commitHash && !existingSet.has(c.commitHash))
-      .map(commit => ({
-        projectId,
-        commitHash: commit.commitHash,
-        commitMessage: commit.commitMessage,
-        commitUrl: commit.commitUrl,
-        authorName: commit.authorName ?? "Unknown",
-        authorAvatarUrl: commit.authorAvatarUrl ?? DEFAULT_HUMAN_AVATAR,
-        authorUrl: commit.authorUrl ?? "",
-        committedAt: new Date(commit.committedAt ?? new Date().toISOString()),
-      }));
-    if (toInsert.length > 0) {
-      const res = await prisma.repoCommit.createMany({ data: toInsert });
-      console.log(`✅ Saved ${res.count} new commits to DB.`);
-    } else {
-      console.log("✅ No new commits to save.");
-    }
-    await enforceCommitRetention(projectId);
-  } catch (error) {
-    console.error("❌ Error saving commits to DB:", error);
-  }
-}
-
-
-// Fetch the latest N commits (default 100)
-export async function getLatestCommitsFromDB(projectId: string, limit = MAX_COMMITS_TO_STORE): Promise<CommitResponse[]> {
-  try {
-    const items = await prisma.repoCommit.findMany({
-      where: { projectId },
-      orderBy: { committedAt: "desc" },
-      take: limit,
-    });
-    return items.map(commit => ({
-      commitHash: commit.commitHash,
-      commitMessage: commit.commitMessage,
-      commitUrl: commit.commitUrl,
-      authorName: commit.authorName ?? "Unknown",
-      authorAvatarUrl: commit.authorAvatarUrl ?? DEFAULT_HUMAN_AVATAR,
-      authorUrl: commit.authorUrl ?? "",
-      committedAt: commit.committedAt.toISOString(),
-    }));
-  } catch (error) {
-    console.error("❌ Error fetching latest commits from DB:", error);
-    return [];
-  }
-}
-
 // Fetch a paginated page of commits (25 per page by default)
 export async function getCommitsPageFromDB(projectId: string, page = 1, pageSize = COMMITS_PAGE_SIZE): Promise<CommitResponse[]> {
+  // Always at most the newest 100 commits are stored per repo.
   try {
-    const skip = (page - 1) * pageSize;
-    const items = await prisma.repoCommit.findMany({
-      where: { projectId },
-      orderBy: { committedAt: "desc" },
-      skip,
-      take: pageSize,
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { repoId: true },
     });
-    return items.map(commit => ({
+    if (!project?.repoId) return [];
+    const all = await prisma.repoCommit.findMany({
+      where: { repoId: project.repoId },
+      orderBy: { committedAt: "desc" },
+      take: MAX_COMMITS_TO_STORE,
+    });
+    const start = (page - 1) * pageSize;
+    const pageItems = all.slice(start, start + pageSize);
+    return pageItems.map(commit => ({
       commitHash: commit.commitHash,
       commitMessage: commit.commitMessage,
       commitUrl: commit.commitUrl,
@@ -174,54 +109,56 @@ export async function getCommitsPageFromDB(projectId: string, page = 1, pageSize
   }
 }
 
-export async function fetchAndReplaceCommits(projectId: string) {
-  return withProjectLock(projectId, async () => {
-    try {
-      const githubUrl = await getGithubUrl(projectId);
-      if (!githubUrl) throw new Error("GitHub URL not found.");
-      const commits = await fetchCommitsFromGitHub(githubUrl, MAX_COMMITS_TO_STORE);
-      // Replace in a transaction to minimize lock time
-      await prisma.$transaction([
-        prisma.repoCommit.deleteMany({ where: { projectId } }),
-        prisma.repoCommit.createMany({
-          data: commits.map(c => ({
-            projectId,
-            commitHash: c.commitHash,
-            commitMessage: c.commitMessage,
-            commitUrl: c.commitUrl,
-            authorName: c.authorName ?? "Unknown",
-            authorAvatarUrl: c.authorAvatarUrl ?? DEFAULT_HUMAN_AVATAR,
-            authorUrl: c.authorUrl ?? "",
-            committedAt: new Date(c.committedAt ?? new Date().toISOString()),
-          })),
-        }),
-      ]);
-      await enforceCommitRetention(projectId);
-      return commits.slice(0, MAX_COMMITS_TO_STORE);
-    } catch (error) {
-      console.error("❌ Error in fetchAndReplaceCommits:", error);
-      return [];
-    }
-  });
-}
-
-async function enforceCommitRetention(projectId: string) {
+export async function fetchAndReplaceCommits(projectId: string): Promise<CommitResponse[]> {
   try {
-    // Delete older commits beyond MAX_COMMITS_TO_STORE by committedAt desc, skipping first N
-    const oldest = await prisma.repoCommit.findMany({
-      where: { projectId },
-      orderBy: { committedAt: "desc" },
-      skip: MAX_COMMITS_TO_STORE,
-      select: { id: true },
+    // Get the repoId and githubUrl for this project
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { repoId: true, repo: { select: { githubUrl: true } } },
     });
-    if (oldest.length) {
-      await prisma.repoCommit.deleteMany({ where: { id: { in: oldest.map(o => o.id) } } });
-      console.log(`🧹 Trimmed ${oldest.length} old commits (retained latest ${MAX_COMMITS_TO_STORE}).`);
+    if (!project?.repoId || !project.repo?.githubUrl) throw new Error("Repo or GitHub URL not found.");
+    const repoId = project.repoId;
+    const githubUrl = project.repo.githubUrl;
+
+    // 1. REUSE: If another repo already has commits, just use those (no need to copy, since all projects share the same repoId now)
+    const existingCommits = await prisma.repoCommit.findMany({
+      where: { repoId },
+      orderBy: { committedAt: "desc" },
+      take: MAX_COMMITS_TO_STORE,
+    });
+    if (existingCommits.length > 0) {
+      return existingCommits.map(c => ({
+        commitHash: c.commitHash,
+        commitMessage: c.commitMessage,
+        commitUrl: c.commitUrl,
+        authorName: c.authorName,
+        authorAvatarUrl: c.authorAvatarUrl,
+        authorUrl: c.authorUrl,
+        committedAt: c.committedAt.toISOString(),
+      }));
     }
+
+    // 2. FRESH FETCH: No commits for this repo yet.
+    const commits = await fetchCommitsFromGitHubUsingOctokit(githubUrl, MAX_COMMITS_TO_STORE);
+    await prisma.repoCommit.createMany({
+      data: commits.map(c => ({
+        repoId,
+        commitHash: c.commitHash,
+        commitMessage: c.commitMessage,
+        commitUrl: c.commitUrl,
+        authorName: c.authorName ?? "Unknown",
+        authorAvatarUrl: c.authorAvatarUrl ?? DEFAULT_HUMAN_AVATAR,
+        authorUrl: c.authorUrl ?? "",
+        committedAt: new Date(c.committedAt ?? new Date().toISOString()),
+      })),
+    });
+    return commits.slice(0, MAX_COMMITS_TO_STORE);
   } catch (error) {
-    console.error("❌ Error enforcing commit retention:", error);
+    console.error("❌ Error in fetchAndReplaceCommits:", error);
+    return [];
   }
 }
+// Retention: we always insert at most MAX_COMMITS_TO_STORE so explicit trimming is no longer required.
 
 // Simple in-memory refresh rate limit per project (resets on server restart)
 const lastRefreshAt = new Map<string, number>();
@@ -232,7 +169,7 @@ export class RateLimitError extends Error {
   }
 }
 
-export function canRefreshNow(projectId: string, windowMs = 5 * 60 * 1000) {
+export function canRefreshNow(projectId: string, windowMs = 30 * 1000) {
   const now = Date.now();
   const last = lastRefreshAt.get(projectId) ?? 0;
   const diff = now - last;
@@ -240,17 +177,22 @@ export function canRefreshNow(projectId: string, windowMs = 5 * 60 * 1000) {
   return { allowed, retryAfterMs: allowed ? 0 : windowMs - diff };
 }
 
-export async function refreshCommitsWithRateLimit(projectId: string, windowMs = 5 * 60 * 1000) {
+export async function refreshCommitsWithRateLimit(projectId: string, windowMs = 30 * 1000) {
   const { allowed, retryAfterMs } = canRefreshNow(projectId, windowMs);
   if (!allowed) throw new RateLimitError(retryAfterMs);
-  // Compare current DB hashes with incoming fetched set to compute new count
+  // Get repoId for this project
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { repoId: true },
+  });
+  if (!project?.repoId) throw new Error("Repo not found for project");
   const existing = await prisma.repoCommit.findMany({
-    where: { projectId },
+    where: { repoId: project.repoId },
     select: { commitHash: true },
   });
   const existingSet = new Set(existing.map(e => e.commitHash));
   const commits = await fetchAndReplaceCommits(projectId);
   const newCount = commits.filter(c => !existingSet.has(c.commitHash)).length;
-  lastRefreshAt.set(projectId, Date.now());
+  if (commits.length) lastRefreshAt.set(projectId, Date.now());
   return { commits, newCount };
 }

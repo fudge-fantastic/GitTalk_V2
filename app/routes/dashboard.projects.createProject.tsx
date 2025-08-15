@@ -3,9 +3,7 @@ import { Form, useActionData } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
-import { getSession } from "~/session.server";
-import { createCollection, upsertChunksToQdrant } from "~/models/qdrant.server";
-import { loadGithubDocs } from "~/models/langchain.server";
+import { ensureLocalUser } from "~/models/user.server";
 import { isValidGitHubRepoUrl } from "~/utils/someFunctions";
 
 export async function action({ request }: { request: Request }) {
@@ -18,31 +16,13 @@ export async function action({ request }: { request: Request }) {
         return json({ error: "Invalid GitHub repository URL" }, { status: 400 });
     }
 
-    const session = await getSession(request.headers.get("Cookie"));
-    const userId = session.get("userId");
-
-    if (!userId) {
-        return json({ error: "Unauthorized User" }, { status: 401 });
-    }
+    const user = await ensureLocalUser();
+    const userId = user.id;
 
     try {
         // Create project with initial PENDING status
-        const project = await createSingleProject({ userId, projectName, githubUrl });
-        console.log("✅ Project created:", { projectName, githubUrl });
-
-    // Fire-and-forget background ingestion (no DB status tracking now)
-        (async () => {
-            const collection_name = process.env.COLLECTION_NAME || "";
-            try {
-        // Optional warmup (safe to remove)
-        try { await fetch("http://localhost", { method: "HEAD" }); } catch { /* ignore */ }
-                await createCollection(collection_name);
-                const docs = await loadGithubDocs(githubUrl, userId, project.id);
-                await upsertChunksToQdrant(docs, collection_name);
-            } catch (err: any) {
-                console.error("❌ Background indexing failed", err);
-            }
-        })();
+    const project = await createSingleProject({ userId, projectName, githubUrl });
+    console.log("✅ Project created:", { projectName, githubUrl: project.githubUrl });
 
     // Immediate redirect while ingestion continues
         return redirect(`/dashboard/projects/${project.id}`);

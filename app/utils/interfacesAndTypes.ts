@@ -1,10 +1,10 @@
 export interface SingleProjectData {
-    id: string;
-    projectName: string;
-    description: string;
-    createdAt: string;
-    updatedAt: string;
-    githubUrl: string;
+  id: string;
+  projectName: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  githubUrl: string; // Derived from related Repo
 }
 
 export interface ProjectData {

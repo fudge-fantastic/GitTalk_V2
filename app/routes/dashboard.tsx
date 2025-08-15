@@ -6,27 +6,15 @@ import NavBar from "~/components/navbar";
 import { SidebarProvider } from "~/components/ui/sidebar";
 import { prisma } from "~/db.server";
 import { getProjectsForUser } from "~/models/project.server";
-import { requireUserSession, getSession, destroySession } from "~/session.server";
+import { ensureLocalUser } from "~/models/user.server";
 
 // Fetch user info and all projects for sidebar and children
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await requireUserSession(request);
-  // Fetch user now (small) and stream projects progressively
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { username: true, email: true },
-  });
+  const userRecord = await ensureLocalUser();
+  const user = { username: userRecord.username, email: userRecord.email };
   // If the user record no longer exists (e.g. database reset after migration),
   // clear the stale session cookie and send them to login instead of 404.
-  if (!user) {
-    const existing = await getSession(request.headers.get("Cookie"));
-    throw redirect("/login", {
-      headers: {
-        "Set-Cookie": await destroySession(existing),
-      },
-    });
-  }
-  const projectsPromise = getProjectsForUser(session.userId);
+  const projectsPromise = getProjectsForUser(userRecord.id);
   return defer({ user, projects: projectsPromise });
 }
 

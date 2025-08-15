@@ -21,20 +21,50 @@ model User {
   projects Project[]
 }
 
+model Repo {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  githubUrl String   @unique
+  name      String
+  description String?
+
+  projects  Project[]
+  commits   RepoCommit[]
+}
+
 model Project {
   id           String   @id @default(cuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  projectName  String // Moved here for user-defined naming
-  githubUrl    String
+  projectName  String
   description  String?
   userId       String
+  repoId       String
 
-  // Relations
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  repoCommit RepoCommit[]
+  // RAG / indexing status
+  ragStatus    IndexingStatus @default(IDLE)
+  lastIndexedAt DateTime?
+  indexingError String?
+  vectorCount   Int @default(0)
+  embeddingProvider String? 
+  vectorStore       String?
 
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repo       Repo   @relation(fields: [repoId], references: [id], onDelete: Cascade)
 }
+
+enum IndexingStatus {
+  IDLE
+  PENDING
+  INDEXING
+  READY
+  ERROR
+  DISABLED
+  STALE
+}
+
+
 
 model RepoCommit {
   id              String   @id @default(cuid())
@@ -46,22 +76,10 @@ model RepoCommit {
   authorAvatarUrl String
   committedAt     DateTime
 
-  projectId       String
-  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repoId          String
+  repo            Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
   @@index([commitHash])
-  // Ensure we don't store duplicate commits per project
-  @@unique([projectId, commitHash])
-  // Optimize pagination by project/time
-  @@index([projectId, committedAt])
+  @@unique([repoId, commitHash])
+  @@index([repoId, committedAt])
 }
 
-model SummarizedDocument {
-  id          String   @id @default(cuid())
-  repoUrl     String
-  filePath    String
-  contentHash String   @unique
-  summary     String
-  embedding   Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}

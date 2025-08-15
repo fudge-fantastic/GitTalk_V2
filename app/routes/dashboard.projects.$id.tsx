@@ -4,11 +4,11 @@ import { Textarea } from "~/components/ui/textarea";
 import { FaCodeCommit } from "react-icons/fa6";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { json, LoaderFunctionArgs, ActionFunctionArgs, defer } from "@remix-run/node";
-import { refreshCommitsWithRateLimit, getLatestCommitsFromDB, MAX_COMMITS_TO_STORE, RateLimitError } from "~/models/github.server";
+import { refreshCommitsWithRateLimit, getCommitsPageFromDB, RateLimitError } from "~/models/github.server";
 import { FiExternalLink } from "react-icons/fi";
 import { useEffect, useRef, useState, Suspense } from "react"; import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "~/components/ui/dialog"
-import { Pencil, Check, X } from "lucide-react";
-import { requireUserSession } from "~/session.server";
+import { Pencil, X } from "lucide-react";
+import { ensureLocalUser } from "~/models/user.server";
 import { prisma } from "~/db.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -16,7 +16,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const intent = formData.get("intent");
     const projectId = params.id;
     if (!projectId) return json({ error: "Missing project id" }, { status: 400 });
-    const session = await requireUserSession(request);
+    const user = await ensureLocalUser();
     if (intent === "refresh") {
         try {
             const { commits, newCount } = await refreshCommitsWithRateLimit(projectId);
@@ -31,7 +31,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (intent === "update-description") {
         const description = (formData.get("description") ?? "").toString();
         // Ensure ownership
-        const proj = await prisma.project.findFirst({ where: { id: projectId, userId: session.userId }, select: { id: true } });
+    const proj = await prisma.project.findFirst({ where: { id: projectId, userId: user.id }, select: { id: true } });
         if (!proj) return json({ error: "Project not found" }, { status: 404 });
         await prisma.project.update({ where: { id: projectId }, data: { description } });
         // Return projectId so the client can ignore late responses for other projects
@@ -41,31 +41,41 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-    const session = await requireUserSession(request);
+    const user = await ensureLocalUser();
     const projectId = params.id;
     if (!projectId) throw new Response("Project ID required", { status: 400 });
 
     // Fetch project first to validate existence (we don't want to stream a 404 late)
     const project = await prisma.project.findFirst({
-        where: { id: projectId, userId: session.userId },
+    where: { id: projectId, userId: user.id },
+        include: { repo: true },
     });
     if (!project) throw new Response("Project not found", { status: 404 });
 
-    // Prepare commit loading without blocking the shell: try DB first; if empty, refresh and return commits array.
-    const commitsPromise: Promise<any[]> = (async () => {
-        const initial = await getLatestCommitsFromDB(projectId, MAX_COMMITS_TO_STORE);
-        if (initial.length > 0) return initial;
-        try {
-            // Use rate-limited refresh to avoid spamming Octokit on rapid reloads
-            const { commits } = await refreshCommitsWithRateLimit(projectId);
-            return commits;
-        } catch (_e) {
-            // On rate limit or errors, just return whatever we had (empty is fine)
-            return initial;
-        }
-    })();
+    const url = new URL(request.url);
+    const pageParam = url.searchParams.get("page");
+    let page = Number.parseInt(pageParam || "1", 10);
+    if (Number.isNaN(page) || page < 1) page = 1;
+    const PAGE_SIZE = 25;
 
-    return defer({ project, commits: commitsPromise });
+    // Count total commits stored
+    let totalCount = await prisma.repoCommit.count({ where: { repoId: project.repoId } });
+
+    // If none stored yet, attempt a refresh (rate limited) to populate
+    if (totalCount === 0) {
+        try {
+            await refreshCommitsWithRateLimit(projectId);
+            totalCount = await prisma.repoCommit.count({ where: { repoId: project.repoId } });
+        } catch { /* ignore rate limit / errors */ }
+    }
+
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+    if (page > totalPages) page = totalPages; // clamp to valid range
+
+    // Stream only the requested page (keeps response light)
+    const commitsPromise: Promise<any[]> = getCommitsPageFromDB(projectId, page, PAGE_SIZE);
+
+    return defer({ project, commits: commitsPromise, page, totalPages, totalCount, pageSize: PAGE_SIZE });
 }
 
 // Simple skeleton components
@@ -87,7 +97,7 @@ function CommitsSkeleton({ count = 5 }: { count?: number }) {
 }
 
 export default function ProjectDetailsRoute() {
-    const data = useLoaderData<typeof loader>() as { project: any; commits: Promise<any[]> | any[] };
+    const data = useLoaderData<typeof loader>() as { project: any; commits: Promise<any[]> | any[]; page: number; totalPages: number; totalCount: number; pageSize: number };
     const { project } = data;
     const revalidator = useRevalidator();
     const [question, setQuestion] = useState("");
@@ -252,7 +262,7 @@ export default function ProjectDetailsRoute() {
                     <div className="flex items-center gap-2">
                         <FaCodeCommit className="w-7 h-7" />
                         <h1 className="font-semibold text-xl">Recent Commits</h1>
-                        <Link to={project.githubUrl} target="_blank" className="font-medium text-sm lowercase hover:underline flex items-center gap-1" rel="noreferrer">
+                        <Link to={project.repo.githubUrl} target="_blank" className="font-medium text-sm lowercase hover:underline flex items-center gap-1 ml-1" rel="noreferrer">
                             <p>Visit Repository</p>
                             <FiExternalLink className="w-3.5 h-3.5" />
                         </Link>
@@ -324,6 +334,44 @@ export default function ProjectDetailsRoute() {
                                         </div>
                                     ))
                                 )}
+                                {/* Pagination Controls */}
+                                <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                    <p className="text-xs text-muted-foreground">Page {data.page} of {data.totalPages} • Showing {(commits.length > 0) ? ((data.page - 1) * data.pageSize + 1) : 0}-{(data.page - 1) * data.pageSize + commits.length} of {data.totalCount}</p>
+                                    <div className="flex items-center gap-2">
+                                        <Link
+                                            to={`?page=${data.page - 1}`}
+                                            prefetch="intent"
+                                            className={`px-2 py-1 rounded text-xs font-medium border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition ${data.page === 1 ? 'pointer-events-none opacity-50' : ''}`}
+                                        >Prev</Link>
+                                        <div className="flex items-center gap-1">
+                                            {/* Show up to 5 page buttons around current */}
+                                            {Array.from({ length: data.totalPages }, (_, i) => i + 1)
+                                                .filter(p => (p === 1) || (p === data.totalPages) || (Math.abs(p - data.page) <= 2))
+                                                .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                                                    if (idx === 0) return [p];
+                                                    const prev = arr[idx - 1];
+                                                    if (typeof prev === 'number' && p - prev > 1) acc.push('ellipsis');
+                                                    acc.push(p);
+                                                    return acc;
+                                                }, [])
+                                                .map((p, idx) => p === 'ellipsis' ? (
+                                                    <span key={`e-${idx}`} className="px-2 py-1 text-xs text-muted-foreground">…</span>
+                                                ) : (
+                                                    <Link
+                                                        key={p}
+                                                        to={`?page=${p}`}
+                                                        prefetch="intent"
+                                                        className={`px-2 py-1 rounded text-xs font-medium border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition ${p === data.page ? 'bg-zinc-200 dark:bg-zinc-800' : ''}`}
+                                                    >{p}</Link>
+                                                ))}
+                                        </div>
+                                        <Link
+                                            to={`?page=${data.page + 1}`}
+                                            prefetch="intent"
+                                            className={`px-2 py-1 rounded text-xs font-medium border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition ${data.page >= data.totalPages ? 'pointer-events-none opacity-50' : ''}`}
+                                        >Next</Link>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </Await>

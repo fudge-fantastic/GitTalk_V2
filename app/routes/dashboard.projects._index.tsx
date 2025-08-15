@@ -11,10 +11,8 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { ActionFunction, redirect } from "@remix-run/node";
 import { prisma } from "~/db.server";
 import { deleteProjectFromCollection } from "~/models/qdrant.server";
-import { formatDate, ProjectData } from "~/utils/someFunctions";
-
-
-
+import { formatDate } from "~/utils/someFunctions";
+import { ProjectData } from "~/utils/interfacesAndTypes";
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();

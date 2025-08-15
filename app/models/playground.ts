@@ -4,7 +4,6 @@ import {
   createCollection,
   deleteProjectFromCollection,
   upsertChunksToQdrant,
-  collection_name,
   searchPointsInQdrant,
 } from "./qdrant.server";
 import { getUserQueryAndRelevantPoints, loadGithubDocs } from "./langchain.server";
@@ -18,7 +17,7 @@ export async function run() {
 }
 
 export async function test2() {
-  const COLLECTION_NAME = collection_name as string;
+  const COLLECTION_NAME = process.env.QDRANT_COLLECTION_NAME || "github_docs";
   const githubUrl = "https://github.com/sidpandagle/timesheet-manager-backend";
   const projectId = "test-project";
   const userId = "test-user";

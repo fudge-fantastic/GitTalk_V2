@@ -1,7 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getSession } from "~/session.server";
+import { ensureLocalUser } from "~/models/user.server";
 import NavBar from "./navbar";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { FeatureCard } from "~/components/landing/feature-card";
@@ -20,11 +20,9 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-  if (session.has("userId")) {
-    return redirect("/dashboard");
-  }
-  return null;
+  // Always ensure user exists then send them to dashboard directly (no auth UI)
+  await ensureLocalUser();
+  return redirect("/dashboard");
 }
 
 export default function Index() {
@@ -44,10 +42,7 @@ export default function Index() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg">
-                <Link to="/login" className="">Get Started <FaArrowRightLong className="ml-1" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/register">Create Free Account</Link>
+                <Link to="/dashboard" className="">Open Dashboard <FaArrowRightLong className="ml-1" /></Link>
               </Button>
             </div>
             <div className="mt-8 flex flex-wrap gap-4 text-xs text-zinc-500 dark:text-zinc-400">
@@ -111,10 +106,7 @@ export default function Index() {
             <p className="text-zinc-600 dark:text-zinc-300 mb-8 max-w-2xl mx-auto">Spin up a project and start asking questions in under a minute. Your code deserves conversational understanding.</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="shadow-md">
-                <Link to="/login">Launch Dashboard</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/register">Create Free Account</Link>
+                <Link to="/dashboard">Open Dashboard</Link>
               </Button>
             </div>
         </div>

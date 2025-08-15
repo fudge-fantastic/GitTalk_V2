@@ -155,7 +155,7 @@ function SideBarGroup2Component({ projects }: { projects: { id: string; projectN
               <SidebarMenuItem key={item.projectName}>
                 <SidebarMenuButton asChild>
                   <Link to={`/dashboard/projects/${item.id}`} className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-md font-medium bg-zinc-950 text-white flex items-center justify-center text-xs">
+                    <div className="h-6 w-6 rounded-full font-medium bg-zinc-950 text-white flex items-center justify-center text-xs">
                       {item.projectName[0].toUpperCase()}
                     </div>
                     <span className="font-medium">{item.projectName}</span>
@@ -217,12 +217,6 @@ function SideBarFooterComponent({ user }: { user: { username: string; email: str
             <DropdownMenuSeparator />
             <DropdownMenuItem>GitHub</DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DialogTrigger className="w-full">
-              <DropdownMenuItem>
-                Logout
-              </DropdownMenuItem>
-            </DialogTrigger>
           </DropdownMenuContent>
         </DropdownMenu>
         <DialogContent>

@@ -19,8 +19,8 @@ export function Footer() {
               <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Product</h3>
               <ul className="space-y-2 text-zinc-600 dark:text-zinc-400">
                 <li><Link to="/dashboard" className="hover:text-zinc-900 dark:hover:text-zinc-200">Dashboard</Link></li>
-                <li><Link to="/register" className="hover:text-zinc-900 dark:hover:text-zinc-200">Sign Up</Link></li>
-                <li><Link to="/login" className="hover:text-zinc-900 dark:hover:text-zinc-200">Login</Link></li>
+                <li><Link to="/dashboard/projects" className="hover:text-zinc-900 dark:hover:text-zinc-200">Projects</Link></li>
+                <li><Link to="/dashboard/askquestions" className="hover:text-zinc-900 dark:hover:text-zinc-200">Ask</Link></li>
               </ul>
             </div>
             <div className="space-y-3">

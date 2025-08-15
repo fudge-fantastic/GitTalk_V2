@@ -11,10 +11,8 @@ dotenv.config();
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { Document } from "@langchain/core/documents";
 
-export const collection_name = process.env.COLLECTION_NAME;
-if (!collection_name) {
-  throw new Error("❌ COLLECTION_NAME is missing in .env");
-}
+// Read collection name lazily; don't throw during module import so the app can run
+export const getCollectionName = (): string | undefined => process.env.COLLECTION_NAME;
 
 // Instantiating Vector-DB client (For cloud)
 export const qdrant_cloud = new QdrantClient({
@@ -22,14 +20,31 @@ export const qdrant_cloud = new QdrantClient({
   apiKey: process.env.QDRANT_API_KEY,
 });
 
-// For local
+// For local (default)
 export const qdrant = new QdrantClient({
   url: "http://localhost:6333",
 });
 
+// Health check helper for Qdrant
+export async function pingQdrant(): Promise<boolean> {
+  try {
+    await qdrant.getCollections();
+  return true;
+  } catch (err) {
+  const e: any = err;
+  console.warn("⚠️ Qdrant ping failed:", e?.message ?? e);
+    return false;
+  }
+}
+
 // 1. Create Collection
 export async function createCollection(collectionName: string) {
   try {
+    if (!collectionName) {
+      console.warn("⚠️ createCollection called without collectionName");
+      return;
+    }
+
     const existing = await qdrant.getCollections();
     const alreadyExists = existing.collections.some(
       (c) => c.name === collectionName
@@ -100,17 +115,47 @@ export async function upsertChunksToQdrant(
 // 3. Delete by projectId
 export async function deleteProjectFromCollection(projectId: string) {
   try {
-    await qdrant.delete(collection_name as string, {
-      filter: {
-        must: [
-          {
-            key: "projectId",
-            match: { value: projectId },
-          },
-        ],
-      },
+  const col = getCollectionName();
+  if (!col) throw new Error("COLLECTION_NAME missing");
+
+  // Be defensive: different versions of the Qdrant client expose different APIs.
+  // Try the high-level methods first, then fall back to the HTTP REST endpoint.
+  const client: any = qdrant;
+
+  const filterBody = {
+    filter: {
+      must: [
+        {
+          key: "projectId",
+          match: { value: projectId },
+        },
+      ],
+    },
+  };
+
+  if (typeof client.delete === "function") {
+    // Older convenience method signature: delete(collectionName, { filter })
+    await client.delete(col as string, filterBody);
+  } else if (client.points && typeof client.points.delete === "function") {
+    // Some client variants use points.delete({ collection_name, filter })
+    await client.points.delete({ collection_name: col, ...filterBody });
+  } else {
+    // Final fallback: call the HTTP REST API directly.
+    const baseUrl = process.env.QDRANT_URL ?? "http://localhost:6333";
+    const url = `${baseUrl.replace(/\/+$/, "")}/collections/${encodeURIComponent(col)}/points/delete`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(filterBody),
     });
-    console.log(`🗑️ Deleted all vectors for projectId: ${projectId}`);
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "<no body>");
+      throw new Error(`Qdrant HTTP delete failed: ${res.status} ${res.statusText} - ${text}`);
+    }
+  }
+
+  console.log(`🗑️ Deleted all vectors for projectId: ${projectId}`);
   } catch (error) {
     console.error(`❌ Error deleting project ${projectId}:`, error);
   }
