@@ -1,7 +1,6 @@
 import type { MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { ensureLocalUser } from "~/models/user.server";
 import NavBar from "./navbar";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { FeatureCard } from "~/components/landing/feature-card";
@@ -20,8 +19,6 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // Always ensure user exists then send them to dashboard directly (no auth UI)
-  await ensureLocalUser();
   return redirect("/dashboard");
 }
 

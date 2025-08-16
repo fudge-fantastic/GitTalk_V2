@@ -4,11 +4,11 @@ import { Suspense } from "react";
 import { Sparkles } from "lucide-react";
 
 export default function DashboardIndex() {
-  const { user, projects } = useOutletContext<{ user: { username: string }, projects: any }>();
+  const { projects } = useOutletContext<{ projects: any }>();
   return (
     <div className="max-w-5xl mx-auto py-12 px-6">
       <div className="mb-10">
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2">Hey <span>{user.username}</span><Sparkles className="w-6 h-6 text-emerald-500"/></h1>
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2">Hello there! <Sparkles className="w-6 h-6 text-emerald-500"/></h1>
         <p className="mt-3 text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">Your workspace hub. Jump into a project, ask contextual questions, or sync fresh commits. Everything stays fast & grounded.</p>
       </div>
 

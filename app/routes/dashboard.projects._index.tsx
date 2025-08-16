@@ -93,13 +93,13 @@ export default function ProjectsIndex() {
   const { projects } = useOutletContext<{ projects: ProjectData[] }>();
   return (
     <div className="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-3">
-      {projects.map((project) => (
-        <ProjectCard key={project.id} project={project} />
-      ))}
       {/* New Project Card */}
       <Link to="/dashboard/projects/createProject" className="gap-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-950 dark:hover:bg-zinc-900 transition rounded-md flex items-center justify-center text-center py-10 px-5 font-semibold text-zinc-600 dark:text-zinc-300 border border-dashed border-zinc-400">
         <p className="md:text-lg text-sm">Create New Project</p>
       </Link>
+      {projects.map((project) => (
+        <ProjectCard key={project.id} project={project} />
+      ))}
     </div>
   );
 }

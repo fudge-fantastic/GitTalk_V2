@@ -26,7 +26,6 @@ export { prisma };
 void (async () => {
   try {
     // Only attempt for SQLite URLs
-    // @ts-ignore - prisma._engineConfig is internal; fallback to URL env if needed
     const isSQLite = true; // Datasource is SQLite in prisma/schema.prisma
     if (isSQLite) {
       await prisma.$executeRawUnsafe("PRAGMA journal_mode = WAL");

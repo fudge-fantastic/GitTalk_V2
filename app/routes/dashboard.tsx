@@ -4,17 +4,13 @@ import { Outlet, useLoaderData } from "@remix-run/react";
 import { AppSidebar } from "~/components/app-sidebar";
 import NavBar from "~/components/navbar";
 import { SidebarProvider } from "~/components/ui/sidebar";
-import { prisma } from "~/db.server";
-import { getProjectsForUser } from "~/models/project.server";
-import { ensureLocalUser } from "~/models/user.server";
+import { getAllProjects } from "~/models/project.server";
 
 // Fetch user info and all projects for sidebar and children
 export async function loader({ request }: LoaderFunctionArgs) {
-  const userRecord = await ensureLocalUser();
-  const user = { username: userRecord.username, email: userRecord.email };
-  // If the user record no longer exists (e.g. database reset after migration),
-  // clear the stale session cookie and send them to login instead of 404.
-  const projectsPromise = getProjectsForUser(userRecord.id);
+  // Single-user mode: no user record, provide static metadata
+  const user = { username: "Local User", email: "local-mode" };
+  const projectsPromise = getAllProjects();
   return defer({ user, projects: projectsPromise });
 }
 

@@ -8,18 +8,7 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model User {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  username  String
-  email     String   @unique
-  password  String
-  credits   Int      @default(100)
-
-  // Relations
-  projects Project[]
-}
+// Single-user mode: removed User model. All data is global.
 
 model Repo {
   id        String   @id @default(cuid())
@@ -39,19 +28,18 @@ model Project {
   updatedAt    DateTime @updatedAt
   projectName  String
   description  String?
-  userId       String
   repoId       String
 
   // RAG / indexing status
-  ragStatus    IndexingStatus @default(IDLE)
-  lastIndexedAt DateTime?
-  indexingError String?
-  vectorCount   Int @default(0)
-  embeddingProvider String? 
+  ragStatus       IndexingStatus @default(IDLE)
+  lastIndexedAt   DateTime?
+  indexingError   String?
+  vectorCount     Int @default(0)
+  embeddingProvider String?
   vectorStore       String?
 
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   repo       Repo   @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  @@index([repoId])
 }
 
 enum IndexingStatus {
@@ -81,5 +69,22 @@ model RepoCommit {
   @@index([commitHash])
   @@unique([repoId, commitHash])
   @@index([repoId, committedAt])
+}
+
+// Local-only preferences (extend later for multi-user)
+// UserPreference removed (single-user mode); replace with future Config table if needed.
+
+// Stored environment-like key/value credentials (single-user local mode)
+// NOTE: These are NOT automatically merged into process.env at runtime.
+// Access via prisma.envVar or a helper loader. Do NOT use for production secrets without
+// adding encryption at rest and access controls.
+model EnvVar {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  key       String
+  value     String
+
+  @@unique([key])
 }
 

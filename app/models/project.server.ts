@@ -3,12 +3,10 @@ import { extractOwnerRepo } from "~/utils/someFunctions";
 
 // Create a project while ensuring a shared Repo record exists (connect or create)
 export async function createSingleProject({
-  userId,
   projectName,
   githubUrl,
   description,
 }: {
-  userId: string;
   projectName: string;
   githubUrl: string;
   description?: string | null;
@@ -23,7 +21,6 @@ export async function createSingleProject({
   });
   const project = await prisma.project.create({
     data: {
-      userId,
       projectName,
       description: description ?? null,
       repoId: repo.id,
@@ -32,10 +29,9 @@ export async function createSingleProject({
   return { ...project, githubUrl: repo.githubUrl };
 }
 
-// Get view of all projects (include repo to expose githubUrl derived field)
-export async function getProjectsForUser(userId: string) {
+// Get view of all projects (include repo to expose githubUrl derived field) - single user so no filter
+export async function getAllProjects() {
   const projects = await prisma.project.findMany({
-    where: { userId },
     orderBy: { createdAt: "desc" },
     include: { repo: { select: { githubUrl: true } } },
   });

@@ -3,7 +3,6 @@ import { Form, useActionData } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import { LuCodeXml } from "react-icons/lu";
 import { createSingleProject } from "~/models/project.server";
-import { ensureLocalUser } from "~/models/user.server";
 import { isValidGitHubRepoUrl } from "~/utils/someFunctions";
 
 export async function action({ request }: { request: Request }) {
@@ -16,12 +15,9 @@ export async function action({ request }: { request: Request }) {
         return json({ error: "Invalid GitHub repository URL" }, { status: 400 });
     }
 
-    const user = await ensureLocalUser();
-    const userId = user.id;
-
     try {
         // Create project with initial PENDING status
-    const project = await createSingleProject({ userId, projectName, githubUrl });
+    const project = await createSingleProject({ projectName, githubUrl });
     console.log("✅ Project created:", { projectName, githubUrl: project.githubUrl });
 
     // Immediate redirect while ingestion continues

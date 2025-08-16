@@ -8,7 +8,6 @@ import { refreshCommitsWithRateLimit, getCommitsPageFromDB, RateLimitError } fro
 import { FiExternalLink } from "react-icons/fi";
 import { useEffect, useRef, useState, Suspense } from "react"; import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "~/components/ui/dialog"
 import { Pencil, X } from "lucide-react";
-import { ensureLocalUser } from "~/models/user.server";
 import { prisma } from "~/db.server";
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -16,7 +15,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const intent = formData.get("intent");
     const projectId = params.id;
     if (!projectId) return json({ error: "Missing project id" }, { status: 400 });
-    const user = await ensureLocalUser();
     if (intent === "refresh") {
         try {
             const { commits, newCount } = await refreshCommitsWithRateLimit(projectId);
@@ -31,7 +29,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     if (intent === "update-description") {
         const description = (formData.get("description") ?? "").toString();
         // Ensure ownership
-    const proj = await prisma.project.findFirst({ where: { id: projectId, userId: user.id }, select: { id: true } });
+    const proj = await prisma.project.findFirst({ where: { id: projectId }, select: { id: true } });
         if (!proj) return json({ error: "Project not found" }, { status: 404 });
         await prisma.project.update({ where: { id: projectId }, data: { description } });
         // Return projectId so the client can ignore late responses for other projects
@@ -41,13 +39,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-    const user = await ensureLocalUser();
     const projectId = params.id;
     if (!projectId) throw new Response("Project ID required", { status: 400 });
 
     // Fetch project first to validate existence (we don't want to stream a 404 late)
     const project = await prisma.project.findFirst({
-    where: { id: projectId, userId: user.id },
+    where: { id: projectId },
         include: { repo: true },
     });
     if (!project) throw new Response("Project not found", { status: 404 });
